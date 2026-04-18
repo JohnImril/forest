@@ -1,0 +1,234 @@
+.scene-page {
+	min-height: calc(3.36vw + 150vw);
+	background: #120c05;
+}
+
+.scene-stack {
+	position: relative;
+	min-height: calc(3.36vw + 150vw);
+	overflow: hidden;
+}
+
+.forest-scene {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: calc(100vw * 1024 / 1536);
+	overflow: hidden;
+	z-index: 2;
+	background-image: url("/forest.png");
+	background-size: 100% auto;
+	background-position: top center;
+	background-repeat: no-repeat;
+	-webkit-mask-image: linear-gradient(
+		180deg,
+		#000 0%,
+		#000 90.5%,
+		rgba(0, 0, 0, 0.82) 94%,
+		rgba(0, 0, 0, 0.34) 97.2%,
+		transparent 100%
+	);
+	-webkit-mask-repeat: no-repeat;
+	mask-image: linear-gradient(
+		180deg,
+		#000 0%,
+		#000 90.5%,
+		rgba(0, 0, 0, 0.82) 94%,
+		rgba(0, 0, 0, 0.34) 97.2%,
+		transparent 100%
+	);
+	mask-repeat: no-repeat;
+}
+
+.hollow-eyes {
+	position: absolute;
+	left: var(--eyes-left, 81%);
+	top: var(--eyes-top, 43%);
+	z-index: 4;
+	display: flex;
+	gap: 9px;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+
+.eye {
+	--blink-duration: 7.2s;
+
+	position: relative;
+	width: 12px;
+	height: 8px;
+	border-radius: 65% 65% 55% 55%;
+	background: radial-gradient(circle at 50% 45%, #efd07a 0 42%, #bb8740 72%, #5b3a1b 100%);
+	box-shadow:
+		0 0 5px rgba(241, 180, 86, 0.38),
+		0 0 14px rgba(88, 53, 23, 0.42);
+	animation: blink-switch var(--blink-duration) steps(1, end) infinite;
+}
+
+.pupil {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 3px;
+	height: 4px;
+	border-radius: 45%;
+	background: #171005;
+	transform: translate(-50%, -50%);
+	filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
+}
+
+.leaves-layer {
+	position: absolute;
+	inset: 0;
+	z-index: 5;
+	pointer-events: none;
+}
+
+.underworld-scene {
+	position: absolute;
+	top: 3.36vw;
+	left: 0;
+	width: 100%;
+	z-index: 1;
+}
+
+.underworld-scene::before {
+	content: "";
+	position: absolute;
+	top: 57vw;
+	left: 0;
+	right: 0;
+	height: 13vw;
+	z-index: 2;
+	pointer-events: none;
+	background: linear-gradient(
+		180deg,
+		rgba(0, 0, 0, 0) 0%,
+		rgba(0, 0, 0, 0.34) 38%,
+		rgba(0, 0, 0, 0.24) 68%,
+		rgba(0, 0, 0, 0) 100%
+	);
+}
+
+.underworld-image {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 1024 / 1536;
+	object-fit: contain;
+	filter: brightness(0.62);
+	position: relative;
+	z-index: 1;
+}
+
+.leaf {
+	--leaf-color-1: #8f5c2a;
+	--leaf-color-2: #b17935;
+	--leaf-color-3: #c99349;
+
+	position: absolute;
+	left: var(--leaf-left);
+	top: var(--leaf-top);
+	width: var(--leaf-size);
+	height: calc(var(--leaf-size) * 0.62);
+	opacity: var(--leaf-opacity);
+	border-radius: 90% 14% 88% 16%;
+	border: 1px solid rgba(73, 45, 21, 0.28);
+	background: linear-gradient(122deg, var(--leaf-color-1) 0%, var(--leaf-color-2) 56%, var(--leaf-color-3) 100%);
+	box-shadow:
+		0 0 4px rgba(41, 24, 12, 0.3),
+		inset -1px -1px 0 rgba(67, 36, 16, 0.25);
+	transform-origin: center;
+	animation:
+		leaf-fall var(--leaf-duration) linear var(--leaf-delay) infinite,
+		leaf-spin calc(var(--leaf-duration) * 0.6) ease-in-out var(--leaf-delay) infinite;
+}
+
+.leaf::before {
+	content: "";
+	position: absolute;
+	left: 49%;
+	top: 10%;
+	width: 1px;
+	height: 80%;
+	background: rgba(87, 49, 24, 0.45);
+	transform: rotate(9deg);
+}
+
+@keyframes blink-switch {
+	0%,
+	100% {
+		opacity: 0.9;
+		filter: brightness(1);
+	}
+	18% {
+		opacity: 0.9;
+		filter: brightness(1);
+	}
+	19.3% {
+		opacity: 0;
+		filter: brightness(0.2);
+	}
+	20.4% {
+		opacity: 0.9;
+		filter: brightness(1);
+	}
+	47.1% {
+		opacity: 0;
+		filter: brightness(0.2);
+	}
+	48.3% {
+		opacity: 0.9;
+		filter: brightness(1);
+	}
+}
+
+@keyframes leaf-fall {
+	0% {
+		transform: translate3d(0, -10vh, 0) rotate(0deg);
+	}
+	25% {
+		transform: translate3d(calc(var(--leaf-drift) * 0.6), 12vh, 0) rotate(calc(45deg * var(--leaf-spin)));
+	}
+	55% {
+		transform: translate3d(calc(var(--leaf-drift) * -0.45), 42vh, 0) rotate(calc(-100deg * var(--leaf-spin)));
+	}
+	80% {
+		transform: translate3d(calc(var(--leaf-drift) * 0.7), 70vh, 0) rotate(calc(140deg * var(--leaf-spin)));
+	}
+	100% {
+		transform: translate3d(calc(var(--leaf-drift) * -0.25), 108vh, 0) rotate(calc(210deg * var(--leaf-spin)));
+	}
+}
+
+@keyframes leaf-spin {
+	0%,
+	100% {
+		filter: brightness(0.95) saturate(0.92);
+	}
+	50% {
+		filter: brightness(1.08) saturate(1);
+	}
+}
+
+@media (max-width: 900px) {
+	.forest-scene {
+		-webkit-mask-image: linear-gradient(
+			180deg,
+			#000 0%,
+			#000 91%,
+			rgba(0, 0, 0, 0.8) 94.4%,
+			rgba(0, 0, 0, 0.3) 97.4%,
+			transparent 100%
+		);
+		mask-image: linear-gradient(
+			180deg,
+			#000 0%,
+			#000 91%,
+			rgba(0, 0, 0, 0.8) 94.4%,
+			rgba(0, 0, 0, 0.3) 97.4%,
+			transparent 100%
+		);
+	}
+}
