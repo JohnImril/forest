@@ -16,10 +16,14 @@ type Particle = {
 	variant: number;
 };
 
+type ImageFormat = "avif" | "webp" | "png";
+
+type SeasonImage = Record<ImageFormat, string>;
+
 type Season = {
 	id: SeasonId;
 	label: string;
-	image: string;
+	image: SeasonImage;
 	hollowPoint?: typeof HOLLOW_POINT;
 	particleClass: string;
 	count: number;
@@ -32,12 +36,21 @@ type Season = {
 const IMAGE_SIZE = { width: 1536, height: 1024 };
 const HOLLOW_POINT = { x: 0.786, y: 0.43 };
 const assetUrl = (fileName: string) => `${import.meta.env.BASE_URL}${fileName}`;
+const formatPreference: ImageFormat[] = ["avif", "webp", "png"];
+const imageSupportTest: Partial<Record<ImageFormat, string>> = {
+	avif: "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZgAAAPBtZXRhAAAAAAAAACFoZGxyAAAAAAAAAABwaWN0AAAAAAAAAAAAAAAAAAAAAAAOcGl0bQAAAAAAAQAAAB5pbG9jAAAAAEQAAgABAAAAAAEAIgAAABwAAAAoaWluZgAAAAAAAgAAABFpbmZlAgAAAAEAAWF2MDEAAAAAEWluZmUCAAAAAgAAcGl4aQAAAABZaXBycAAAAElpcGNvAAAAFGlzcGUAAAAAAAAAAQAAAAEAAAAQcGl4aQAAAAADCAgIAAAAEWF2MUOBABAAACgAIgAAAA1tZGF0EgAKBzgADlAgIGkyCR/wAABAAACAAQAA",
+	webp: "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA",
+};
 
 const seasons: Season[] = [
 	{
 		id: "spring",
 		label: "Spring",
-		image: assetUrl("spring.png"),
+		image: {
+			avif: assetUrl("spring.avif"),
+			webp: assetUrl("spring.webp"),
+			png: assetUrl("spring.png"),
+		},
 		particleClass: "particle--spring",
 		count: 42,
 		size: [10, 24],
@@ -48,7 +61,11 @@ const seasons: Season[] = [
 	{
 		id: "summer",
 		label: "Summer",
-		image: assetUrl("summer.png"),
+		image: {
+			avif: assetUrl("summer.avif"),
+			webp: assetUrl("summer.webp"),
+			png: assetUrl("summer.png"),
+		},
 		particleClass: "particle--summer",
 		count: 36,
 		size: [3, 8],
@@ -59,7 +76,11 @@ const seasons: Season[] = [
 	{
 		id: "autumn",
 		label: "Autumn",
-		image: assetUrl("autumn.png"),
+		image: {
+			avif: assetUrl("autumn.avif"),
+			webp: assetUrl("autumn.webp"),
+			png: assetUrl("autumn.png"),
+		},
 		hollowPoint: { x: 0.796, y: 0.43 },
 		particleClass: "particle--autumn",
 		count: 28,
@@ -71,7 +92,11 @@ const seasons: Season[] = [
 	{
 		id: "winter",
 		label: "Winter",
-		image: assetUrl("winter.png"),
+		image: {
+			avif: assetUrl("winter.avif"),
+			webp: assetUrl("winter.webp"),
+			png: assetUrl("winter.png"),
+		},
 		particleClass: "particle--winter",
 		count: 46,
 		size: [3, 8],
@@ -98,13 +123,41 @@ const makeParticles = (season: Season): Particle[] =>
 const preloadImage = (src: string) =>
 	new Promise<void>((resolve, reject) => {
 		const image = new Image();
-		image.onload = () => resolve();
+		image.onload = () => {
+			image.decode().then(resolve).catch(resolve);
+		};
 		image.onerror = () => reject(new Error(`Failed to load image: ${src}`));
 		image.src = src;
 	});
 
+const supportsImageFormat = (format: ImageFormat) =>
+	new Promise<boolean>((resolve) => {
+		const testSrc = imageSupportTest[format];
+
+		if (!testSrc) {
+			resolve(true);
+			return;
+		}
+
+		const image = new Image();
+		image.onload = () => resolve(image.width > 0 && image.height > 0);
+		image.onerror = () => resolve(false);
+		image.src = testSrc;
+	});
+
+const getBestImageFormat = async () => {
+	for (const format of formatPreference) {
+		if (await supportsImageFormat(format)) {
+			return format;
+		}
+	}
+
+	return "png";
+};
+
 function App() {
 	const [imagesReady, setImagesReady] = useState(false);
+	const [imageFormat, setImageFormat] = useState<ImageFormat>("png");
 	const [activeSeasonId, setActiveSeasonId] = useState<SeasonId>("autumn");
 	const activeSeason = seasons.find((season) => season.id === activeSeasonId) ?? seasons[2];
 	const hollowPoint = activeSeason.hollowPoint ?? HOLLOW_POINT;
@@ -117,9 +170,15 @@ function App() {
 	useEffect(() => {
 		let isMounted = true;
 
-		Promise.all(seasons.map((season) => preloadImage(season.image)))
-			.then(() => {
+		getBestImageFormat()
+			.then(async (format) => {
+				await Promise.all(seasons.map((season) => preloadImage(season.image[format])));
+
+				return format;
+			})
+			.then((format) => {
 				if (isMounted) {
+					setImageFormat(format);
 					setImagesReady(true);
 				}
 			})
@@ -173,8 +232,21 @@ function App() {
 			<section
 				className="forest-scene"
 				aria-label={`${activeSeason.label} forest background with seasonal particles`}
-				style={{ "--scene-image": `url("${activeSeason.image}")` } as CSSProperties}
 			>
+				<div className="season-backgrounds" aria-hidden="true">
+					{seasons.map((season) => (
+						<img
+							key={season.id}
+							className="season-background"
+							src={season.image[imageFormat]}
+							alt=""
+							aria-hidden="true"
+							data-active={season.id === activeSeasonId}
+							decoding="async"
+						/>
+					))}
+				</div>
+
 				<nav className="season-switcher" aria-label="Season selector">
 					{seasons.map((season) => (
 						<button

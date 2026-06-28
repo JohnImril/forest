@@ -38,10 +38,30 @@
 	width: 100%;
 	height: 100vh;
 	overflow: hidden;
-	background-image: var(--scene-image, none);
-	background-size: cover;
-	background-position: center;
-	background-repeat: no-repeat;
+	background: #120c05;
+}
+
+.season-backgrounds,
+.season-background {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.season-backgrounds {
+	z-index: 0;
+}
+
+.season-background {
+	object-fit: cover;
+	object-position: center;
+	opacity: 0;
+	transition: opacity 180ms ease;
+}
+
+.season-background[data-active="true"] {
+	opacity: 1;
 }
 
 .season-switcher {
