@@ -1,44 +1,65 @@
 .scene-page {
-	min-height: calc(3.36vw + 150vw);
+	min-height: 100vh;
 	background: #120c05;
 }
 
-.scene-stack {
-	position: relative;
-	min-height: calc(3.36vw + 150vw);
+.forest-scene {
+	--scene-image: url("/autumn.png");
+
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	height: 100vh;
 	overflow: hidden;
+	background-image: var(--scene-image);
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
 }
 
-.forest-scene {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: calc(100vw * 1024 / 1536);
-	overflow: hidden;
-	z-index: 2;
-	background-image: url("/forest.png");
-	background-size: 100% auto;
-	background-position: top center;
-	background-repeat: no-repeat;
-	-webkit-mask-image: linear-gradient(
-		180deg,
-		#000 0%,
-		#000 90.5%,
-		rgba(0, 0, 0, 0.82) 94%,
-		rgba(0, 0, 0, 0.34) 97.2%,
-		transparent 100%
-	);
-	-webkit-mask-repeat: no-repeat;
-	mask-image: linear-gradient(
-		180deg,
-		#000 0%,
-		#000 90.5%,
-		rgba(0, 0, 0, 0.82) 94%,
-		rgba(0, 0, 0, 0.34) 97.2%,
-		transparent 100%
-	);
-	mask-repeat: no-repeat;
+.season-switcher {
+	position: fixed;
+	top: 18px;
+	left: 50%;
+	z-index: 10;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(72px, 1fr));
+	gap: 4px;
+	width: min(420px, calc(100vw - 28px));
+	padding: 4px;
+	border: 1px solid rgba(255, 239, 203, 0.2);
+	border-radius: 8px;
+	background: rgba(20, 14, 7, 0.42);
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+	backdrop-filter: blur(10px);
+	transform: translateX(-50%);
+}
+
+.season-button {
+	min-width: 0;
+	height: 34px;
+	padding: 0 10px;
+	border: 0;
+	border-radius: 5px;
+	color: rgba(255, 244, 222, 0.72);
+	background: transparent;
+	font: 700 13px/1 "Trebuchet MS", "Segoe UI", sans-serif;
+	cursor: pointer;
+	transition:
+		color 160ms ease,
+		background-color 160ms ease,
+		box-shadow 160ms ease;
+}
+
+.season-button:hover {
+	color: #fff4de;
+	background: rgba(255, 235, 190, 0.12);
+}
+
+.season-button[aria-pressed="true"] {
+	color: #1b1208;
+	background: rgba(255, 230, 168, 0.86);
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
 }
 
 .hollow-eyes {
@@ -78,74 +99,134 @@
 	filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
 }
 
-.leaves-layer {
+.particles-layer {
 	position: absolute;
 	inset: 0;
 	z-index: 5;
 	pointer-events: none;
 }
 
-.underworld-scene {
-	position: absolute;
-	top: 3.36vw;
-	left: 0;
-	width: 100%;
-	z-index: 1;
-}
-
-.underworld-scene::before {
-	content: "";
-	position: absolute;
-	top: 57vw;
-	left: 0;
-	right: 0;
-	height: 13vw;
-	z-index: 2;
-	pointer-events: none;
-	background: linear-gradient(
-		180deg,
-		rgba(0, 0, 0, 0) 0%,
-		rgba(0, 0, 0, 0.34) 38%,
-		rgba(0, 0, 0, 0.24) 68%,
-		rgba(0, 0, 0, 0) 100%
-	);
-}
-
-.underworld-image {
-	display: block;
-	width: 100%;
-	height: auto;
-	aspect-ratio: 1024 / 1536;
-	object-fit: contain;
-	filter: brightness(0.62);
-	position: relative;
-	z-index: 1;
-}
-
-.leaf {
-	--leaf-color-1: #8f5c2a;
-	--leaf-color-2: #b17935;
-	--leaf-color-3: #c99349;
+.particle {
+	--particle-color-1: #8f5c2a;
+	--particle-color-2: #b17935;
+	--particle-color-3: #c99349;
 
 	position: absolute;
-	left: var(--leaf-left);
-	top: var(--leaf-top);
-	width: var(--leaf-size);
-	height: calc(var(--leaf-size) * 0.62);
-	opacity: var(--leaf-opacity);
-	border-radius: 90% 14% 88% 16%;
+	left: var(--particle-left);
+	top: var(--particle-top);
+	width: var(--particle-size);
+	height: calc(var(--particle-size) * 0.62);
+	opacity: var(--particle-opacity);
 	border: 1px solid rgba(73, 45, 21, 0.28);
-	background: linear-gradient(122deg, var(--leaf-color-1) 0%, var(--leaf-color-2) 56%, var(--leaf-color-3) 100%);
-	box-shadow:
-		0 0 4px rgba(41, 24, 12, 0.3),
-		inset -1px -1px 0 rgba(67, 36, 16, 0.25);
 	transform-origin: center;
 	animation:
-		leaf-fall var(--leaf-duration) linear var(--leaf-delay) infinite,
-		leaf-spin calc(var(--leaf-duration) * 0.6) ease-in-out var(--leaf-delay) infinite;
+		particle-fall var(--particle-duration) linear var(--particle-delay) infinite,
+		particle-shimmer calc(var(--particle-duration) * 0.6) ease-in-out var(--particle-delay) infinite;
 }
 
-.leaf::before {
+.particle--spring {
+	width: calc(var(--particle-size) * 0.78);
+	height: var(--particle-size);
+	border: 1px solid rgba(236, 147, 177, 0.2);
+	border-radius: 58% 42% 62% 38% / 72% 68% 32% 28%;
+	background:
+		radial-gradient(circle at 48% 7%, rgba(70, 36, 48, 0.26) 0 6%, transparent 7%),
+		radial-gradient(ellipse at 46% 36%, rgba(255, 255, 255, 0.92) 0 20%, transparent 48%),
+		linear-gradient(145deg, rgba(255, 244, 248, 0.92) 0%, rgba(251, 188, 209, 0.82) 54%, rgba(232, 126, 164, 0.72) 100%);
+	box-shadow:
+		0 0 10px rgba(255, 218, 228, 0.22),
+		inset -2px -3px 5px rgba(194, 91, 129, 0.14);
+	animation:
+		petal-fall var(--particle-duration) ease-in-out var(--particle-delay) infinite,
+		petal-turn calc(var(--particle-duration) * 0.52) ease-in-out var(--particle-delay) infinite;
+}
+
+.particle--summer {
+	width: calc(var(--particle-size) * 1.35);
+	height: calc(var(--particle-size) * 0.82);
+	border: 0;
+	border-radius: 56% 44% 52% 48%;
+	background:
+		radial-gradient(circle at 42% 46%, rgba(255, 243, 166, 0.95) 0 18%, rgba(244, 196, 85, 0.52) 34%, transparent 56%),
+		radial-gradient(ellipse at 62% 52%, rgba(234, 222, 142, 0.26) 0 30%, transparent 72%);
+	box-shadow:
+		0 0 5px rgba(255, 229, 128, 0.34),
+		0 0 14px rgba(126, 151, 74, 0.18);
+	animation:
+		summer-drift var(--particle-duration) ease-in-out var(--particle-delay) infinite,
+		summer-flicker calc(var(--particle-duration) * 0.38) ease-in-out var(--particle-delay) infinite;
+}
+
+.particle--summer::before {
+	content: "";
+	position: absolute;
+	left: 12%;
+	top: 46%;
+	width: 58%;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(255, 239, 166, 0.34), transparent);
+	transform: rotate(calc(14deg * var(--particle-spin)));
+}
+
+.particle--autumn {
+	width: calc(var(--particle-size) * 0.82);
+	height: var(--particle-size);
+	border-color: rgba(84, 49, 20, 0.28);
+	border-radius: 72% 18% 68% 22% / 66% 18% 78% 28%;
+	background:
+		radial-gradient(ellipse at 32% 28%, rgba(255, 197, 92, 0.34) 0 18%, transparent 44%),
+		linear-gradient(138deg, var(--particle-color-1) 0%, var(--particle-color-2) 48%, var(--particle-color-3) 100%);
+	box-shadow:
+		0 2px 6px rgba(32, 18, 8, 0.26),
+		inset -2px -3px 4px rgba(70, 36, 14, 0.24),
+		inset 2px 1px 3px rgba(255, 205, 100, 0.12);
+	animation:
+		autumn-fall var(--particle-duration) ease-in-out var(--particle-delay) infinite,
+		autumn-flip calc(var(--particle-duration) * 0.48) ease-in-out var(--particle-delay) infinite;
+}
+
+.particle--autumn:nth-child(4n + 1) {
+	--particle-color-1: #74351d;
+	--particle-color-2: #b95625;
+	--particle-color-3: #d88936;
+}
+
+.particle--autumn:nth-child(4n + 2) {
+	--particle-color-1: #8a5b23;
+	--particle-color-2: #c58b35;
+	--particle-color-3: #d6ad51;
+	border-radius: 84% 16% 72% 20% / 58% 20% 80% 34%;
+}
+
+.particle--autumn:nth-child(4n + 3) {
+	--particle-color-1: #7b271c;
+	--particle-color-2: #a94724;
+	--particle-color-3: #c86f2c;
+	width: calc(var(--particle-size) * 0.72);
+}
+
+.particle--autumn:nth-child(4n + 4) {
+	--particle-color-1: #5f4b1c;
+	--particle-color-2: #9a7a2d;
+	--particle-color-3: #c99a3d;
+	border-radius: 58% 42% 62% 38% / 72% 36% 64% 28%;
+}
+
+.particle--winter {
+	height: var(--particle-size);
+	border: 0;
+	border-radius: 50%;
+	background: rgba(246, 252, 255, 0.92);
+	box-shadow:
+		0 0 6px rgba(255, 255, 255, 0.68),
+		0 0 12px rgba(165, 216, 255, 0.28);
+	animation:
+		particle-snow var(--particle-duration) linear var(--particle-delay) infinite,
+		particle-shimmer calc(var(--particle-duration) * 0.8) ease-in-out var(--particle-delay) infinite;
+}
+
+.particle--spring::before,
+.particle--autumn::before {
 	content: "";
 	position: absolute;
 	left: 49%;
@@ -154,6 +235,27 @@
 	height: 80%;
 	background: rgba(87, 49, 24, 0.45);
 	transform: rotate(9deg);
+}
+
+.particle--autumn::after {
+	content: "";
+	position: absolute;
+	left: 44%;
+	bottom: -18%;
+	width: 1px;
+	height: 28%;
+	background: rgba(83, 45, 18, 0.54);
+	transform: rotate(22deg);
+	transform-origin: top;
+}
+
+.particle--spring::before {
+	left: 50%;
+	top: 18%;
+	width: 1px;
+	height: 58%;
+	background: linear-gradient(180deg, rgba(205, 102, 139, 0), rgba(205, 102, 139, 0.28), rgba(205, 102, 139, 0));
+	transform: translateX(-50%) rotate(-8deg);
 }
 
 @keyframes blink-switch {
@@ -184,25 +286,124 @@
 	}
 }
 
-@keyframes leaf-fall {
+@keyframes particle-fall {
 	0% {
 		transform: translate3d(0, -10vh, 0) rotate(0deg);
 	}
 	25% {
-		transform: translate3d(calc(var(--leaf-drift) * 0.6), 12vh, 0) rotate(calc(45deg * var(--leaf-spin)));
+		transform: translate3d(calc(var(--particle-drift) * 0.6), 12vh, 0) rotate(calc(45deg * var(--particle-spin)));
 	}
 	55% {
-		transform: translate3d(calc(var(--leaf-drift) * -0.45), 42vh, 0) rotate(calc(-100deg * var(--leaf-spin)));
+		transform: translate3d(calc(var(--particle-drift) * -0.45), 42vh, 0) rotate(calc(-100deg * var(--particle-spin)));
 	}
 	80% {
-		transform: translate3d(calc(var(--leaf-drift) * 0.7), 70vh, 0) rotate(calc(140deg * var(--leaf-spin)));
+		transform: translate3d(calc(var(--particle-drift) * 0.7), 70vh, 0) rotate(calc(140deg * var(--particle-spin)));
 	}
 	100% {
-		transform: translate3d(calc(var(--leaf-drift) * -0.25), 108vh, 0) rotate(calc(210deg * var(--leaf-spin)));
+		transform: translate3d(calc(var(--particle-drift) * -0.25), 108vh, 0) rotate(calc(210deg * var(--particle-spin)));
 	}
 }
 
-@keyframes leaf-spin {
+@keyframes autumn-fall {
+	0% {
+		transform: translate3d(0, -12vh, 0) rotate(calc(-22deg * var(--particle-spin))) scale(0.94);
+	}
+	18% {
+		transform: translate3d(calc(var(--particle-drift) * 0.34), 10vh, 0) rotate(calc(76deg * var(--particle-spin))) scale(1);
+	}
+	42% {
+		transform: translate3d(calc(var(--particle-drift) * -0.28), 36vh, 0) rotate(calc(-128deg * var(--particle-spin))) scale(0.88);
+	}
+	70% {
+		transform: translate3d(calc(var(--particle-drift) * 0.52), 68vh, 0) rotate(calc(186deg * var(--particle-spin))) scale(1.04);
+	}
+	100% {
+		transform: translate3d(calc(var(--particle-drift) * -0.18), 112vh, 0) rotate(calc(312deg * var(--particle-spin))) scale(0.92);
+	}
+}
+
+@keyframes autumn-flip {
+	0%,
+	100% {
+		filter: brightness(0.92) saturate(0.95);
+	}
+	45% {
+		filter: brightness(1.1) saturate(1.08);
+	}
+	65% {
+		filter: brightness(0.82) saturate(0.88);
+	}
+}
+
+@keyframes particle-float {
+	0%,
+	100% {
+		transform: translate3d(0, 96vh, 0) scale(0.85);
+	}
+	50% {
+		transform: translate3d(calc(var(--particle-drift) * var(--particle-spin)), 42vh, 0) scale(1.18);
+	}
+}
+
+@keyframes summer-drift {
+	0% {
+		transform: translate3d(0, 0, 0) rotate(0deg) scale(0.78);
+	}
+	24% {
+		transform: translate3d(calc(var(--particle-drift) * 0.16 * var(--particle-spin)), -3.5vh, 0) rotate(calc(18deg * var(--particle-spin))) scale(0.96);
+	}
+	48% {
+		transform: translate3d(calc(var(--particle-drift) * -0.12 * var(--particle-spin)), 2.8vh, 0) rotate(calc(-12deg * var(--particle-spin))) scale(1.08);
+	}
+	74% {
+		transform: translate3d(calc(var(--particle-drift) * 0.22 * var(--particle-spin)), 5.4vh, 0) rotate(calc(24deg * var(--particle-spin))) scale(0.9);
+	}
+	100% {
+		transform: translate3d(0, 0, 0) rotate(calc(40deg * var(--particle-spin))) scale(0.78);
+	}
+}
+
+@keyframes petal-fall {
+	0% {
+		transform: translate3d(0, -14vh, 0) rotate(12deg);
+	}
+	22% {
+		transform: translate3d(calc(var(--particle-drift) * 0.44), 14vh, 0) rotate(calc(68deg * var(--particle-spin)));
+	}
+	48% {
+		transform: translate3d(calc(var(--particle-drift) * -0.34), 42vh, 0) rotate(calc(-82deg * var(--particle-spin)));
+	}
+	74% {
+		transform: translate3d(calc(var(--particle-drift) * 0.5), 72vh, 0) rotate(calc(148deg * var(--particle-spin)));
+	}
+	100% {
+		transform: translate3d(calc(var(--particle-drift) * -0.2), 110vh, 0) rotate(calc(236deg * var(--particle-spin)));
+	}
+}
+
+@keyframes petal-turn {
+	0%,
+	100% {
+		filter: brightness(1) saturate(0.96);
+	}
+	50% {
+		filter: brightness(1.1) saturate(1.04);
+	}
+}
+
+@keyframes particle-snow {
+	0% {
+		transform: translate3d(0, -12vh, 0);
+	}
+	50% {
+		transform: translate3d(calc(var(--particle-drift) * var(--particle-spin)), 48vh, 0);
+	}
+	100% {
+		transform: translate3d(calc(var(--particle-drift) * -0.42 * var(--particle-spin)), 108vh, 0);
+	}
+}
+
+@keyframes particle-shimmer {
 	0%,
 	100% {
 		filter: brightness(0.95) saturate(0.92);
@@ -212,23 +413,31 @@
 	}
 }
 
-@media (max-width: 900px) {
-	.forest-scene {
-		-webkit-mask-image: linear-gradient(
-			180deg,
-			#000 0%,
-			#000 91%,
-			rgba(0, 0, 0, 0.8) 94.4%,
-			rgba(0, 0, 0, 0.3) 97.4%,
-			transparent 100%
-		);
-		mask-image: linear-gradient(
-			180deg,
-			#000 0%,
-			#000 91%,
-			rgba(0, 0, 0, 0.8) 94.4%,
-			rgba(0, 0, 0, 0.3) 97.4%,
-			transparent 100%
-		);
+@keyframes summer-flicker {
+	0%,
+	100% {
+		filter: brightness(0.88) blur(0.1px);
+		opacity: calc(var(--particle-opacity) * 0.58);
+	}
+	38% {
+		filter: brightness(1.05) blur(0);
+		opacity: var(--particle-opacity);
+	}
+	66% {
+		filter: brightness(0.78) blur(0.2px);
+		opacity: calc(var(--particle-opacity) * 0.42);
+	}
+}
+
+@media (max-width: 560px) {
+	.season-switcher {
+		top: 12px;
+		grid-template-columns: repeat(2, 1fr);
+		width: min(260px, calc(100vw - 24px));
+	}
+
+	.season-button {
+		height: 32px;
+		font-size: 12px;
 	}
 }
