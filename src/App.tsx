@@ -41,11 +41,7 @@ type NetworkInformation = {
 const IMAGE_SIZE = { width: 1536, height: 1024 };
 const HOLLOW_POINT = { x: 0.786, y: 0.43 };
 const assetUrl = (fileName: string) => `${import.meta.env.BASE_URL}${fileName}`;
-const formatPreference: ImageFormat[] = ["avif", "webp", "png"];
-const imageSupportTest: Partial<Record<ImageFormat, string>> = {
-	avif: "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZgAAAPBtZXRhAAAAAAAAACFoZGxyAAAAAAAAAABwaWN0AAAAAAAAAAAAAAAAAAAAAAAOcGl0bQAAAAAAAQAAAB5pbG9jAAAAAEQAAgABAAAAAAEAIgAAABwAAAAoaWluZgAAAAAAAgAAABFpbmZlAgAAAAEAAWF2MDEAAAAAEWluZmUCAAAAAgAAcGl4aQAAAABZaXBycAAAAElpcGNvAAAAFGlzcGUAAAAAAAAAAQAAAAEAAAAQcGl4aQAAAAADCAgIAAAAEWF2MUOBABAAACgAIgAAAA1tZGF0EgAKBzgADlAgIGkyCR/wAABAAACAAQAA",
-	webp: "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA",
-};
+const isPngImage = (src: string) => new URL(src, window.location.href).pathname.endsWith(".png");
 
 const seasons: Season[] = [
 	{
@@ -149,31 +145,6 @@ const preloadWhenIdle = (src: string) =>
 		setTimeout(run, 900);
 	});
 
-const supportsImageFormat = (format: ImageFormat) =>
-	new Promise<boolean>((resolve) => {
-		const testSrc = imageSupportTest[format];
-
-		if (!testSrc) {
-			resolve(true);
-			return;
-		}
-
-		const image = new Image();
-		image.onload = () => resolve(image.width > 0 && image.height > 0);
-		image.onerror = () => resolve(false);
-		image.src = testSrc;
-	});
-
-const getBestImageFormat = async () => {
-	for (const format of formatPreference) {
-		if (await supportsImageFormat(format)) {
-			return format;
-		}
-	}
-
-	return "png";
-};
-
 const shouldLoadHighResolutionImages = () => {
 	const connection = (navigator as Navigator & { connection?: NetworkInformation }).connection;
 
@@ -181,49 +152,23 @@ const shouldLoadHighResolutionImages = () => {
 };
 
 function App() {
-	const [imagesReady, setImagesReady] = useState(false);
-	const [imageFormat, setImageFormat] = useState<ImageFormat>("png");
+	const [activeSeasonId, setActiveSeasonId] = useState<SeasonId>("autumn");
+	const [visibleSeasonId, setVisibleSeasonId] = useState<SeasonId>("autumn");
+	const [loadedSeasonIds, setLoadedSeasonIds] = useState<ReadonlySet<SeasonId>>(() => new Set());
 	const [highResolutionSeasonIds, setHighResolutionSeasonIds] = useState<ReadonlySet<SeasonId>>(() => new Set());
 	const highResolutionLoadedSeasonIds = useRef(new Set<SeasonId>());
 	const highResolutionLoadPromises = useRef(new Map<SeasonId, Promise<void>>());
-	const [activeSeasonId, setActiveSeasonId] = useState<SeasonId>("autumn");
-	const activeSeason = seasons.find((season) => season.id === activeSeasonId) ?? seasons[2];
-	const hollowPoint = activeSeason.hollowPoint ?? HOLLOW_POINT;
+	const visibleSeason = seasons.find((season) => season.id === visibleSeasonId) ?? seasons[2];
+	const activeSeason = seasons.find((season) => season.id === activeSeasonId) ?? visibleSeason;
+	const renderedSeason = loadedSeasonIds.has(activeSeasonId) ? activeSeason : visibleSeason;
+	const hollowPoint = renderedSeason.hollowPoint ?? HOLLOW_POINT;
 	const [eyePosition, setEyePosition] = useState(() => ({
 		x: window.innerWidth * hollowPoint.x,
 		y: window.innerHeight * hollowPoint.y,
 	}));
-	const particles = useMemo(() => makeParticles(activeSeason), [activeSeason]);
+	const particles = useMemo(() => makeParticles(renderedSeason), [renderedSeason]);
 
 	useEffect(() => {
-		let isMounted = true;
-
-		getBestImageFormat()
-			.then(async (format) => {
-				await Promise.all(seasons.map((season) => preloadImage(season.image[format])));
-
-				return format;
-			})
-			.then((format) => {
-				if (isMounted) {
-					setImageFormat(format);
-					setImagesReady(true);
-				}
-			})
-			.catch((error: unknown) => {
-				console.error(error);
-			});
-
-		return () => {
-			isMounted = false;
-		};
-	}, []);
-
-	useEffect(() => {
-		if (!imagesReady) {
-			return;
-		}
-
 		const updateEyePosition = () => {
 			const viewportWidth = window.innerWidth;
 			const viewportHeight = window.innerHeight;
@@ -243,17 +188,18 @@ function App() {
 		window.addEventListener("resize", updateEyePosition);
 
 		return () => window.removeEventListener("resize", updateEyePosition);
-	}, [hollowPoint, imagesReady]);
+	}, [hollowPoint]);
 
 	useEffect(() => {
-		if (!imagesReady || imageFormat === "png" || !shouldLoadHighResolutionImages()) {
+		if (!loadedSeasonIds.has(activeSeasonId) || !shouldLoadHighResolutionImages()) {
 			return;
 		}
 
 		const orderedSeasons = [
 			activeSeason,
-			...seasons.filter((season) => season.id !== activeSeason.id),
+			...seasons.filter((season) => season.id !== activeSeason.id && loadedSeasonIds.has(season.id)),
 		];
+
 		const loadHighResolutionSeason = (season: Season) => {
 			if (highResolutionLoadedSeasonIds.current.has(season.id)) {
 				return Promise.resolve();
@@ -299,37 +245,86 @@ function App() {
 		};
 
 		void loadHighResolutionImages();
-	}, [activeSeason, imageFormat, imagesReady]);
+	}, [activeSeason, activeSeasonId, loadedSeasonIds]);
 
-	if (!imagesReady) {
-		return (
-			<main className="scene-page scene-page--loading" aria-busy="true">
-				<div className="scene-loader" role="status" aria-live="polite">
-					Loading forest
-				</div>
-			</main>
-		);
-	}
+	const handleSeasonLoad = (seasonId: SeasonId, currentSrc: string) => {
+		setLoadedSeasonIds((currentSeasonIds) => {
+			if (currentSeasonIds.has(seasonId)) {
+				return currentSeasonIds;
+			}
+
+			const nextSeasonIds = new Set(currentSeasonIds);
+			nextSeasonIds.add(seasonId);
+
+			return nextSeasonIds;
+		});
+
+		if (seasonId === activeSeasonId) {
+			setVisibleSeasonId(seasonId);
+		}
+
+		if (isPngImage(currentSrc)) {
+			highResolutionLoadedSeasonIds.current.add(seasonId);
+			setHighResolutionSeasonIds((currentSeasonIds) => {
+				if (currentSeasonIds.has(seasonId)) {
+					return currentSeasonIds;
+				}
+
+				const nextSeasonIds = new Set(currentSeasonIds);
+				nextSeasonIds.add(seasonId);
+
+				return nextSeasonIds;
+			});
+		}
+	};
+
+	const handleSeasonSelect = (seasonId: SeasonId) => {
+		setActiveSeasonId(seasonId);
+
+		if (loadedSeasonIds.has(seasonId)) {
+			setVisibleSeasonId(seasonId);
+		}
+	};
 
 	return (
 		<main className="scene-page">
 			<section
 				className="forest-scene"
-				aria-label={`${activeSeason.label} forest background with seasonal particles`}
+				aria-label={`${renderedSeason.label} forest background with seasonal particles`}
 			>
 				<div className="season-backgrounds" aria-hidden="true">
 					{seasons.map((season) => (
-						<img
+						<div
 							key={season.id}
 							className="season-background"
-							src={highResolutionSeasonIds.has(season.id) ? season.image.png : season.image[imageFormat]}
-							alt=""
-							aria-hidden="true"
-							data-active={season.id === activeSeasonId}
-							decoding="async"
-							fetchPriority={season.id === activeSeasonId ? "high" : "low"}
-							loading="eager"
-						/>
+							data-active={season.id === visibleSeasonId}
+							data-loaded={loadedSeasonIds.has(season.id)}
+						>
+							<picture className="season-background-picture">
+								<source srcSet={season.image.avif} type="image/avif" />
+								<source srcSet={season.image.webp} type="image/webp" />
+								<img
+									className="season-background-preview"
+									src={season.image.png}
+									alt=""
+									aria-hidden="true"
+									decoding="async"
+									fetchPriority={season.id === activeSeasonId ? "high" : "low"}
+									loading={season.id === activeSeasonId ? "eager" : "lazy"}
+									onLoad={(event) => handleSeasonLoad(season.id, event.currentTarget.currentSrc)}
+								/>
+							</picture>
+							{highResolutionSeasonIds.has(season.id) && (
+								<img
+									className="season-background-high"
+									src={season.image.png}
+									alt=""
+									aria-hidden="true"
+									decoding="async"
+									loading="eager"
+								/>
+							)}
+						</div>
 					))}
 				</div>
 
@@ -340,7 +335,7 @@ function App() {
 							className="season-button"
 							type="button"
 							aria-pressed={season.id === activeSeasonId}
-							onClick={() => setActiveSeasonId(season.id)}
+							onClick={() => handleSeasonSelect(season.id)}
 						>
 							{season.label}
 						</button>
@@ -368,8 +363,8 @@ function App() {
 				<div className="particles-layer" aria-hidden="true">
 					{particles.map((particle) => (
 						<span
-							key={`${activeSeason.id}-${particle.id}`}
-							className={`particle ${activeSeason.particleClass}`}
+							key={`${renderedSeason.id}-${particle.id}`}
+							className={`particle ${renderedSeason.particleClass}`}
 							style={
 								{
 									"--particle-left": `${particle.left}%`,
