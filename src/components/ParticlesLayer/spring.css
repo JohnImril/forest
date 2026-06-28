@@ -1,0 +1,32 @@
+.particle--spring {
+	width: calc(var(--particle-size) * 0.78);
+	height: var(--particle-size);
+	border: 1px solid rgba(236, 147, 177, 0.2);
+	border-radius: 58% 42% 62% 38% / 72% 68% 32% 28%;
+	background:
+		radial-gradient(circle at 48% 7%, rgba(70, 36, 48, 0.26) 0 6%, transparent 7%),
+		radial-gradient(ellipse at 46% 36%, rgba(255, 255, 255, 0.92) 0 20%, transparent 48%),
+		linear-gradient(
+			145deg,
+			rgba(255, 244, 248, 0.92) 0%,
+			rgba(251, 188, 209, 0.82) 54%,
+			rgba(232, 126, 164, 0.72) 100%
+		);
+	box-shadow:
+		0 0 10px rgba(255, 218, 228, 0.22),
+		inset -2px -3px 5px rgba(194, 91, 129, 0.14);
+	animation:
+		petal-fall var(--particle-duration) ease-in-out var(--particle-delay) infinite,
+		petal-turn calc(var(--particle-duration) * 0.52) ease-in-out var(--particle-delay) infinite;
+}
+
+.particle--spring::before {
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: 18%;
+	width: 1px;
+	height: 58%;
+	background: linear-gradient(180deg, rgba(205, 102, 139, 0), rgba(205, 102, 139, 0.28), rgba(205, 102, 139, 0));
+	transform: translateX(-50%) rotate(-8deg);
+}

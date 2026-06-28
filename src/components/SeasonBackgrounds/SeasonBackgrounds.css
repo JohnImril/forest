@@ -1,0 +1,41 @@
+.season-backgrounds,
+.season-background,
+.season-background-picture,
+.season-background img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.season-backgrounds {
+	z-index: 0;
+}
+
+.season-background {
+	opacity: 0;
+	transition: opacity 180ms ease;
+}
+
+.season-background img {
+	display: block;
+	object-fit: cover;
+	object-position: center;
+}
+
+.season-background-high {
+	opacity: 0;
+	transition: opacity 180ms ease;
+}
+
+.season-background-high[data-loaded="true"] {
+	opacity: 1;
+}
+
+.season-background[data-active="true"] {
+	opacity: 1;
+}
+
+.forest-scene[aria-busy="true"] .season-background {
+	opacity: 0;
+}

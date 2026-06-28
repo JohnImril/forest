@@ -1,0 +1,181 @@
+@import "./spring.css";
+@import "./summer.css";
+@import "./autumn.css";
+@import "./winter.css";
+
+.particles-layer {
+	position: absolute;
+	inset: 0;
+	z-index: 5;
+	pointer-events: none;
+}
+
+.particle {
+	--particle-color-1: #8f5c2a;
+	--particle-color-2: #b17935;
+	--particle-color-3: #c99349;
+
+	position: absolute;
+	left: var(--particle-left);
+	top: var(--particle-top);
+	width: var(--particle-size);
+	height: calc(var(--particle-size) * 0.62);
+	opacity: var(--particle-opacity);
+	border: 1px solid rgba(73, 45, 21, 0.28);
+	transform-origin: center;
+	animation:
+		particle-fall var(--particle-duration) linear var(--particle-delay) infinite,
+		particle-shimmer calc(var(--particle-duration) * 0.6) ease-in-out var(--particle-delay) infinite;
+}
+
+@keyframes particle-fall {
+	0% {
+		transform: translate3d(0, -10vh, 0) rotate(0deg);
+	}
+	25% {
+		transform: translate3d(calc(var(--particle-drift) * 0.6), 12vh, 0) rotate(calc(45deg * var(--particle-spin)));
+	}
+	55% {
+		transform: translate3d(calc(var(--particle-drift) * -0.45), 42vh, 0)
+			rotate(calc(-100deg * var(--particle-spin)));
+	}
+	80% {
+		transform: translate3d(calc(var(--particle-drift) * 0.7), 70vh, 0) rotate(calc(140deg * var(--particle-spin)));
+	}
+	100% {
+		transform: translate3d(calc(var(--particle-drift) * -0.25), 108vh, 0)
+			rotate(calc(210deg * var(--particle-spin)));
+	}
+}
+
+@keyframes autumn-fall {
+	0% {
+		transform: translate3d(0, -12vh, 0) rotate(calc(-22deg * var(--particle-spin))) scale(0.94);
+	}
+	18% {
+		transform: translate3d(calc(var(--particle-drift) * 0.34), 10vh, 0) rotate(calc(76deg * var(--particle-spin)))
+			scale(1);
+	}
+	42% {
+		transform: translate3d(calc(var(--particle-drift) * -0.28), 36vh, 0)
+			rotate(calc(-128deg * var(--particle-spin))) scale(0.88);
+	}
+	70% {
+		transform: translate3d(calc(var(--particle-drift) * 0.52), 68vh, 0) rotate(calc(186deg * var(--particle-spin)))
+			scale(1.04);
+	}
+	100% {
+		transform: translate3d(calc(var(--particle-drift) * -0.18), 112vh, 0)
+			rotate(calc(312deg * var(--particle-spin))) scale(0.92);
+	}
+}
+
+@keyframes autumn-flip {
+	0%,
+	100% {
+		filter: brightness(0.92) saturate(0.95);
+	}
+	45% {
+		filter: brightness(1.1) saturate(1.08);
+	}
+	65% {
+		filter: brightness(0.82) saturate(0.88);
+	}
+}
+
+@keyframes particle-float {
+	0%,
+	100% {
+		transform: translate3d(0, 96vh, 0) scale(0.85);
+	}
+	50% {
+		transform: translate3d(calc(var(--particle-drift) * var(--particle-spin)), 42vh, 0) scale(1.18);
+	}
+}
+
+@keyframes summer-drift {
+	0% {
+		transform: translate3d(0, 0, 0) rotate(0deg) scale(0.78);
+	}
+	24% {
+		transform: translate3d(calc(var(--particle-drift) * 0.16 * var(--particle-spin)), -3.5vh, 0)
+			rotate(calc(18deg * var(--particle-spin))) scale(0.96);
+	}
+	48% {
+		transform: translate3d(calc(var(--particle-drift) * -0.12 * var(--particle-spin)), 2.8vh, 0)
+			rotate(calc(-12deg * var(--particle-spin))) scale(1.08);
+	}
+	74% {
+		transform: translate3d(calc(var(--particle-drift) * 0.22 * var(--particle-spin)), 5.4vh, 0)
+			rotate(calc(24deg * var(--particle-spin))) scale(0.9);
+	}
+	100% {
+		transform: translate3d(0, 0, 0) rotate(calc(40deg * var(--particle-spin))) scale(0.78);
+	}
+}
+
+@keyframes petal-fall {
+	0% {
+		transform: translate3d(0, -14vh, 0) rotate(12deg);
+	}
+	22% {
+		transform: translate3d(calc(var(--particle-drift) * 0.44), 14vh, 0) rotate(calc(68deg * var(--particle-spin)));
+	}
+	48% {
+		transform: translate3d(calc(var(--particle-drift) * -0.34), 42vh, 0) rotate(calc(-82deg * var(--particle-spin)));
+	}
+	74% {
+		transform: translate3d(calc(var(--particle-drift) * 0.5), 72vh, 0) rotate(calc(148deg * var(--particle-spin)));
+	}
+	100% {
+		transform: translate3d(calc(var(--particle-drift) * -0.2), 110vh, 0) rotate(calc(236deg * var(--particle-spin)));
+	}
+}
+
+@keyframes petal-turn {
+	0%,
+	100% {
+		filter: brightness(1) saturate(0.96);
+	}
+	50% {
+		filter: brightness(1.1) saturate(1.04);
+	}
+}
+
+@keyframes particle-snow {
+	0% {
+		transform: translate3d(0, -12vh, 0);
+	}
+	50% {
+		transform: translate3d(calc(var(--particle-drift) * var(--particle-spin)), 48vh, 0);
+	}
+	100% {
+		transform: translate3d(calc(var(--particle-drift) * -0.42 * var(--particle-spin)), 108vh, 0);
+	}
+}
+
+@keyframes particle-shimmer {
+	0%,
+	100% {
+		filter: brightness(0.95) saturate(0.92);
+	}
+	50% {
+		filter: brightness(1.08) saturate(1);
+	}
+}
+
+@keyframes summer-flicker {
+	0%,
+	100% {
+		filter: brightness(0.88) blur(0.1px);
+		opacity: calc(var(--particle-opacity) * 0.58);
+	}
+	38% {
+		filter: brightness(1.05) blur(0);
+		opacity: var(--particle-opacity);
+	}
+	66% {
+		filter: brightness(0.78) blur(0.2px);
+		opacity: calc(var(--particle-opacity) * 0.42);
+	}
+}
