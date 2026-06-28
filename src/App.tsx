@@ -31,12 +31,13 @@ type Season = {
 
 const IMAGE_SIZE = { width: 1536, height: 1024 };
 const HOLLOW_POINT = { x: 0.786, y: 0.43 };
+const assetUrl = (fileName: string) => `${import.meta.env.BASE_URL}${fileName}`;
 
 const seasons: Season[] = [
 	{
 		id: "spring",
 		label: "Spring",
-		image: "/spring.png",
+		image: assetUrl("spring.png"),
 		particleClass: "particle--spring",
 		count: 42,
 		size: [10, 24],
@@ -47,7 +48,7 @@ const seasons: Season[] = [
 	{
 		id: "summer",
 		label: "Summer",
-		image: "/summer.png",
+		image: assetUrl("summer.png"),
 		particleClass: "particle--summer",
 		count: 36,
 		size: [3, 8],
@@ -58,7 +59,7 @@ const seasons: Season[] = [
 	{
 		id: "autumn",
 		label: "Autumn",
-		image: "/autumn.png",
+		image: assetUrl("autumn.png"),
 		hollowPoint: { x: 0.796, y: 0.43 },
 		particleClass: "particle--autumn",
 		count: 28,
@@ -70,7 +71,7 @@ const seasons: Season[] = [
 	{
 		id: "winter",
 		label: "Winter",
-		image: "/winter.png",
+		image: assetUrl("winter.png"),
 		particleClass: "particle--winter",
 		count: 46,
 		size: [3, 8],
@@ -84,27 +85,19 @@ const makeParticles = (season: Season): Particle[] =>
 	Array.from({ length: season.count }, (_, id) => ({
 		id,
 		left: 4 + Math.random() * 92,
-		top:
-			season.id === "summer"
-				? 14 + Math.random() * 76
-				: -12 + Math.random() * 36,
+		top: season.id === "summer" ? 14 + Math.random() * 76 : -12 + Math.random() * 36,
 		size: season.size[0] + Math.random() * (season.size[1] - season.size[0]),
-		duration:
-			season.duration[0] +
-			Math.random() * (season.duration[1] - season.duration[0]),
+		duration: season.duration[0] + Math.random() * (season.duration[1] - season.duration[0]),
 		delay: -Math.random() * season.duration[1],
 		drift: season.drift[0] + Math.random() * (season.drift[1] - season.drift[0]),
 		spin: Math.random() > 0.5 ? 1 : -1,
-		opacity:
-			season.opacity[0] +
-			Math.random() * (season.opacity[1] - season.opacity[0]),
+		opacity: season.opacity[0] + Math.random() * (season.opacity[1] - season.opacity[0]),
 		variant: id % 4,
 	}));
 
 function App() {
 	const [activeSeasonId, setActiveSeasonId] = useState<SeasonId>("autumn");
-	const activeSeason =
-		seasons.find((season) => season.id === activeSeasonId) ?? seasons[2];
+	const activeSeason = seasons.find((season) => season.id === activeSeasonId) ?? seasons[2];
 	const hollowPoint = activeSeason.hollowPoint ?? HOLLOW_POINT;
 	const [eyePosition, setEyePosition] = useState(() => ({
 		x: window.innerWidth * hollowPoint.x,
@@ -116,10 +109,7 @@ function App() {
 		const updateEyePosition = () => {
 			const viewportWidth = window.innerWidth;
 			const viewportHeight = window.innerHeight;
-			const scale = Math.max(
-				viewportWidth / IMAGE_SIZE.width,
-				viewportHeight / IMAGE_SIZE.height,
-			);
+			const scale = Math.max(viewportWidth / IMAGE_SIZE.width, viewportHeight / IMAGE_SIZE.height);
 			const renderedWidth = IMAGE_SIZE.width * scale;
 			const renderedHeight = IMAGE_SIZE.height * scale;
 			const offsetX = (viewportWidth - renderedWidth) / 2;
