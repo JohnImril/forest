@@ -161,6 +161,7 @@ function App() {
 	const visibleSeason = seasons.find((season) => season.id === visibleSeasonId) ?? seasons[2];
 	const activeSeason = seasons.find((season) => season.id === activeSeasonId) ?? visibleSeason;
 	const renderedSeason = loadedSeasonIds.has(activeSeasonId) ? activeSeason : visibleSeason;
+	const previewsReady = loadedSeasonIds.size === seasons.length;
 	const hollowPoint = renderedSeason.hollowPoint ?? HOLLOW_POINT;
 	const [eyePosition, setEyePosition] = useState(() => ({
 		x: window.innerWidth * hollowPoint.x,
@@ -291,6 +292,8 @@ function App() {
 			<section
 				className="forest-scene"
 				aria-label={`${renderedSeason.label} forest background with seasonal particles`}
+				aria-busy={!previewsReady}
+				data-ready={previewsReady}
 			>
 				<div className="season-backgrounds" aria-hidden="true">
 					{seasons.map((season) => (
@@ -310,7 +313,7 @@ function App() {
 									aria-hidden="true"
 									decoding="async"
 									fetchPriority={season.id === activeSeasonId ? "high" : "low"}
-									loading={season.id === activeSeasonId ? "eager" : "lazy"}
+									loading="eager"
 									onLoad={(event) => handleSeasonLoad(season.id, event.currentTarget.currentSrc)}
 								/>
 							</picture>
@@ -328,59 +331,71 @@ function App() {
 					))}
 				</div>
 
-				<nav className="season-switcher" aria-label="Season selector">
-					{seasons.map((season) => (
-						<button
-							key={season.id}
-							className="season-button"
-							type="button"
-							aria-pressed={season.id === activeSeasonId}
-							onClick={() => handleSeasonSelect(season.id)}
-						>
-							{season.label}
-						</button>
-					))}
-				</nav>
+				{!previewsReady && (
+					<div className="scene-loader" role="status" aria-live="polite">
+						Loading forest
+					</div>
+				)}
 
-				<div
-					className="hollow-eyes"
-					aria-hidden="true"
-					style={
-						{
-							"--eyes-left": `${eyePosition.x}px`,
-							"--eyes-top": `${eyePosition.y}px`,
-						} as CSSProperties
-					}
-				>
-					<span className="eye">
-						<span className="pupil" />
-					</span>
-					<span className="eye">
-						<span className="pupil" />
-					</span>
-				</div>
+				{previewsReady && (
+					<nav className="season-switcher" aria-label="Season selector">
+						{seasons.map((season) => (
+							<button
+								key={season.id}
+								className="season-button"
+								type="button"
+								aria-pressed={season.id === activeSeasonId}
+								onClick={() => handleSeasonSelect(season.id)}
+							>
+								{season.label}
+							</button>
+						))}
+					</nav>
+				)}
 
-				<div className="particles-layer" aria-hidden="true">
-					{particles.map((particle) => (
-						<span
-							key={`${renderedSeason.id}-${particle.id}`}
-							className={`particle ${renderedSeason.particleClass}`}
-							style={
-								{
-									"--particle-left": `${particle.left}%`,
-									"--particle-top": `${particle.top}%`,
-									"--particle-size": `${particle.size}px`,
-									"--particle-duration": `${particle.duration}s`,
-									"--particle-delay": `${particle.delay}s`,
-									"--particle-drift": `${particle.drift}px`,
-									"--particle-opacity": particle.opacity,
-									"--particle-spin": particle.spin,
-									"--particle-variant": particle.variant,
-								} as CSSProperties
-							}
-						/>
-					))}
-				</div>
+				{previewsReady && (
+					<div
+						className="hollow-eyes"
+						aria-hidden="true"
+						style={
+							{
+								"--eyes-left": `${eyePosition.x}px`,
+								"--eyes-top": `${eyePosition.y}px`,
+							} as CSSProperties
+						}
+					>
+						<span className="eye">
+							<span className="pupil" />
+						</span>
+						<span className="eye">
+							<span className="pupil" />
+						</span>
+					</div>
+				)}
+
+				{previewsReady && (
+					<div className="particles-layer" aria-hidden="true">
+						{particles.map((particle) => (
+							<span
+								key={`${renderedSeason.id}-${particle.id}`}
+								className={`particle ${renderedSeason.particleClass}`}
+								style={
+									{
+										"--particle-left": `${particle.left}%`,
+										"--particle-top": `${particle.top}%`,
+										"--particle-size": `${particle.size}px`,
+										"--particle-duration": `${particle.duration}s`,
+										"--particle-delay": `${particle.delay}s`,
+										"--particle-drift": `${particle.drift}px`,
+										"--particle-opacity": particle.opacity,
+										"--particle-spin": particle.spin,
+										"--particle-variant": particle.variant,
+									} as CSSProperties
+								}
+							/>
+						))}
+					</div>
+				)}
 			</section>
 		</main>
 	);
