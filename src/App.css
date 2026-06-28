@@ -42,7 +42,9 @@
 }
 
 .season-backgrounds,
-.season-background {
+.season-background,
+.season-background-picture,
+.season-background img {
 	position: absolute;
 	inset: 0;
 	width: 100%;
@@ -54,10 +56,14 @@
 }
 
 .season-background {
-	object-fit: cover;
-	object-position: center;
 	opacity: 0;
 	transition: opacity 180ms ease;
+}
+
+.season-background img {
+	display: block;
+	object-fit: cover;
+	object-position: center;
 }
 
 .season-background[data-active="true"] {
