@@ -11,6 +11,8 @@
 
 .scene-loader {
 	position: relative;
+	z-index: 12;
+	place-self: center;
 	font:
 		700 13px/1 "Trebuchet MS",
 		"Segoe UI",
@@ -41,6 +43,10 @@
 	background: #120c05;
 }
 
+.forest-scene[aria-busy="true"] {
+	display: grid;
+}
+
 .season-backgrounds,
 .season-background,
 .season-background-picture,
@@ -68,6 +74,10 @@
 
 .season-background[data-active="true"] {
 	opacity: 1;
+}
+
+.forest-scene[aria-busy="true"] .season-background {
+	opacity: 0;
 }
 
 .season-switcher {
