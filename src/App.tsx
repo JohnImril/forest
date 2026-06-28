@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import "./App.css";
 
 type SeasonId = "spring" | "summer" | "autumn" | "winter";
@@ -31,6 +31,11 @@ type Season = {
 	duration: [number, number];
 	drift: [number, number];
 	opacity: [number, number];
+};
+
+type NetworkInformation = {
+	saveData?: boolean;
+	effectiveType?: string;
 };
 
 const IMAGE_SIZE = { width: 1536, height: 1024 };
@@ -130,6 +135,20 @@ const preloadImage = (src: string) =>
 		image.src = src;
 	});
 
+const preloadWhenIdle = (src: string) =>
+	new Promise<void>((resolve, reject) => {
+		const run = () => {
+			preloadImage(src).then(resolve).catch(reject);
+		};
+
+		if ("requestIdleCallback" in window) {
+			window.requestIdleCallback(run, { timeout: 2400 });
+			return;
+		}
+
+		setTimeout(run, 900);
+	});
+
 const supportsImageFormat = (format: ImageFormat) =>
 	new Promise<boolean>((resolve) => {
 		const testSrc = imageSupportTest[format];
@@ -155,9 +174,18 @@ const getBestImageFormat = async () => {
 	return "png";
 };
 
+const shouldLoadHighResolutionImages = () => {
+	const connection = (navigator as Navigator & { connection?: NetworkInformation }).connection;
+
+	return connection?.saveData !== true && connection?.effectiveType !== "slow-2g" && connection?.effectiveType !== "2g";
+};
+
 function App() {
 	const [imagesReady, setImagesReady] = useState(false);
 	const [imageFormat, setImageFormat] = useState<ImageFormat>("png");
+	const [highResolutionSeasonIds, setHighResolutionSeasonIds] = useState<ReadonlySet<SeasonId>>(() => new Set());
+	const highResolutionLoadedSeasonIds = useRef(new Set<SeasonId>());
+	const highResolutionLoadPromises = useRef(new Map<SeasonId, Promise<void>>());
 	const [activeSeasonId, setActiveSeasonId] = useState<SeasonId>("autumn");
 	const activeSeason = seasons.find((season) => season.id === activeSeasonId) ?? seasons[2];
 	const hollowPoint = activeSeason.hollowPoint ?? HOLLOW_POINT;
@@ -217,6 +245,62 @@ function App() {
 		return () => window.removeEventListener("resize", updateEyePosition);
 	}, [hollowPoint, imagesReady]);
 
+	useEffect(() => {
+		if (!imagesReady || imageFormat === "png" || !shouldLoadHighResolutionImages()) {
+			return;
+		}
+
+		const orderedSeasons = [
+			activeSeason,
+			...seasons.filter((season) => season.id !== activeSeason.id),
+		];
+		const loadHighResolutionSeason = (season: Season) => {
+			if (highResolutionLoadedSeasonIds.current.has(season.id)) {
+				return Promise.resolve();
+			}
+
+			const existingPromise = highResolutionLoadPromises.current.get(season.id);
+
+			if (existingPromise) {
+				return existingPromise;
+			}
+
+			const loadPromise = preloadWhenIdle(season.image.png)
+				.then(() => {
+					highResolutionLoadedSeasonIds.current.add(season.id);
+					setHighResolutionSeasonIds((currentSeasonIds) => {
+						if (currentSeasonIds.has(season.id)) {
+							return currentSeasonIds;
+						}
+
+						const nextSeasonIds = new Set(currentSeasonIds);
+						nextSeasonIds.add(season.id);
+
+						return nextSeasonIds;
+					});
+				})
+				.finally(() => {
+					highResolutionLoadPromises.current.delete(season.id);
+				});
+
+			highResolutionLoadPromises.current.set(season.id, loadPromise);
+
+			return loadPromise;
+		};
+
+		const loadHighResolutionImages = async () => {
+			for (const season of orderedSeasons) {
+				try {
+					await loadHighResolutionSeason(season);
+				} catch (error: unknown) {
+					console.error(error);
+				}
+			}
+		};
+
+		void loadHighResolutionImages();
+	}, [activeSeason, imageFormat, imagesReady]);
+
 	if (!imagesReady) {
 		return (
 			<main className="scene-page scene-page--loading" aria-busy="true">
@@ -238,11 +322,13 @@ function App() {
 						<img
 							key={season.id}
 							className="season-background"
-							src={season.image[imageFormat]}
+							src={highResolutionSeasonIds.has(season.id) ? season.image.png : season.image[imageFormat]}
 							alt=""
 							aria-hidden="true"
 							data-active={season.id === activeSeasonId}
 							decoding="async"
+							fetchPriority={season.id === activeSeasonId ? "high" : "low"}
+							loading="eager"
 						/>
 					))}
 				</div>
