@@ -72,6 +72,15 @@
 	object-position: center;
 }
 
+.season-background-high {
+	opacity: 0;
+	transition: opacity 180ms ease;
+}
+
+.season-background-high[data-loaded="true"] {
+	opacity: 1;
+}
+
 .season-background[data-active="true"] {
 	opacity: 1;
 }

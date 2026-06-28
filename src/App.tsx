@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import "./App.css";
 
 type SeasonId = "spring" | "summer" | "autumn" | "winter";
@@ -121,30 +121,6 @@ const makeParticles = (season: Season): Particle[] =>
 		variant: id % 4,
 	}));
 
-const preloadImage = (src: string) =>
-	new Promise<void>((resolve, reject) => {
-		const image = new Image();
-		image.onload = () => {
-			image.decode().then(resolve).catch(resolve);
-		};
-		image.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-		image.src = src;
-	});
-
-const preloadWhenIdle = (src: string) =>
-	new Promise<void>((resolve, reject) => {
-		const run = () => {
-			preloadImage(src).then(resolve).catch(reject);
-		};
-
-		if ("requestIdleCallback" in window) {
-			window.requestIdleCallback(run, { timeout: 2400 });
-			return;
-		}
-
-		setTimeout(run, 900);
-	});
-
 const shouldLoadHighResolutionImages = () => {
 	const connection = (navigator as Navigator & { connection?: NetworkInformation }).connection;
 
@@ -155,9 +131,11 @@ function App() {
 	const [activeSeasonId, setActiveSeasonId] = useState<SeasonId>("autumn");
 	const [visibleSeasonId, setVisibleSeasonId] = useState<SeasonId>("autumn");
 	const [loadedSeasonIds, setLoadedSeasonIds] = useState<ReadonlySet<SeasonId>>(() => new Set());
+	const [pngPreviewSeasonIds, setPngPreviewSeasonIds] = useState<ReadonlySet<SeasonId>>(() => new Set());
+	const [highResolutionRequestedSeasonIds, setHighResolutionRequestedSeasonIds] = useState<ReadonlySet<SeasonId>>(
+		() => new Set(),
+	);
 	const [highResolutionSeasonIds, setHighResolutionSeasonIds] = useState<ReadonlySet<SeasonId>>(() => new Set());
-	const highResolutionLoadedSeasonIds = useRef(new Set<SeasonId>());
-	const highResolutionLoadPromises = useRef(new Map<SeasonId, Promise<void>>());
 	const visibleSeason = seasons.find((season) => season.id === visibleSeasonId) ?? seasons[2];
 	const activeSeason = seasons.find((season) => season.id === activeSeasonId) ?? visibleSeason;
 	const renderedSeason = loadedSeasonIds.has(activeSeasonId) ? activeSeason : visibleSeason;
@@ -192,61 +170,64 @@ function App() {
 	}, [hollowPoint]);
 
 	useEffect(() => {
-		if (!loadedSeasonIds.has(activeSeasonId) || !shouldLoadHighResolutionImages()) {
+		if (!previewsReady || !loadedSeasonIds.has(activeSeasonId) || !shouldLoadHighResolutionImages()) {
 			return;
 		}
 
-		const orderedSeasons = [
+		const nextSeason = [
 			activeSeason,
-			...seasons.filter((season) => season.id !== activeSeason.id && loadedSeasonIds.has(season.id)),
-		];
+			...seasons.filter((season) => season.id !== activeSeason.id),
+		].find(
+			(season) =>
+				loadedSeasonIds.has(season.id) &&
+				!pngPreviewSeasonIds.has(season.id) &&
+				!highResolutionRequestedSeasonIds.has(season.id) &&
+				!highResolutionSeasonIds.has(season.id),
+		);
 
-		const loadHighResolutionSeason = (season: Season) => {
-			if (highResolutionLoadedSeasonIds.current.has(season.id)) {
-				return Promise.resolve();
-			}
+		if (!nextSeason) {
+			return;
+		}
 
-			const existingPromise = highResolutionLoadPromises.current.get(season.id);
-
-			if (existingPromise) {
-				return existingPromise;
-			}
-
-			const loadPromise = preloadWhenIdle(season.image.png)
-				.then(() => {
-					highResolutionLoadedSeasonIds.current.add(season.id);
-					setHighResolutionSeasonIds((currentSeasonIds) => {
-						if (currentSeasonIds.has(season.id)) {
-							return currentSeasonIds;
-						}
-
-						const nextSeasonIds = new Set(currentSeasonIds);
-						nextSeasonIds.add(season.id);
-
-						return nextSeasonIds;
-					});
-				})
-				.finally(() => {
-					highResolutionLoadPromises.current.delete(season.id);
-				});
-
-			highResolutionLoadPromises.current.set(season.id, loadPromise);
-
-			return loadPromise;
-		};
-
-		const loadHighResolutionImages = async () => {
-			for (const season of orderedSeasons) {
-				try {
-					await loadHighResolutionSeason(season);
-				} catch (error: unknown) {
-					console.error(error);
+		let idleCallbackId: number | undefined;
+		let timeoutId: number | undefined;
+		const requestHighResolutionImage = () => {
+			setHighResolutionRequestedSeasonIds((currentSeasonIds) => {
+				if (currentSeasonIds.has(nextSeason.id)) {
+					return currentSeasonIds;
 				}
-			}
+
+				const nextSeasonIds = new Set(currentSeasonIds);
+				nextSeasonIds.add(nextSeason.id);
+
+				return nextSeasonIds;
+			});
 		};
 
-		void loadHighResolutionImages();
-	}, [activeSeason, activeSeasonId, loadedSeasonIds]);
+		if ("requestIdleCallback" in window) {
+			idleCallbackId = window.requestIdleCallback(requestHighResolutionImage, { timeout: 2400 });
+		} else {
+			timeoutId = setTimeout(requestHighResolutionImage, 900);
+		}
+
+		return () => {
+			if (idleCallbackId !== undefined) {
+				window.cancelIdleCallback(idleCallbackId);
+			}
+
+			if (timeoutId !== undefined) {
+				clearTimeout(timeoutId);
+			}
+		};
+	}, [
+		activeSeason,
+		activeSeasonId,
+		highResolutionRequestedSeasonIds,
+		highResolutionSeasonIds,
+		loadedSeasonIds,
+		pngPreviewSeasonIds,
+		previewsReady,
+	]);
 
 	const handleSeasonLoad = (seasonId: SeasonId, currentSrc: string) => {
 		setLoadedSeasonIds((currentSeasonIds) => {
@@ -265,7 +246,16 @@ function App() {
 		}
 
 		if (isPngImage(currentSrc)) {
-			highResolutionLoadedSeasonIds.current.add(seasonId);
+			setPngPreviewSeasonIds((currentSeasonIds) => {
+				if (currentSeasonIds.has(seasonId)) {
+					return currentSeasonIds;
+				}
+
+				const nextSeasonIds = new Set(currentSeasonIds);
+				nextSeasonIds.add(seasonId);
+
+				return nextSeasonIds;
+			});
 			setHighResolutionSeasonIds((currentSeasonIds) => {
 				if (currentSeasonIds.has(seasonId)) {
 					return currentSeasonIds;
@@ -277,6 +267,19 @@ function App() {
 				return nextSeasonIds;
 			});
 		}
+	};
+
+	const handleHighResolutionLoad = (seasonId: SeasonId) => {
+		setHighResolutionSeasonIds((currentSeasonIds) => {
+			if (currentSeasonIds.has(seasonId)) {
+				return currentSeasonIds;
+			}
+
+			const nextSeasonIds = new Set(currentSeasonIds);
+			nextSeasonIds.add(seasonId);
+
+			return nextSeasonIds;
+		});
 	};
 
 	const handleSeasonSelect = (seasonId: SeasonId) => {
@@ -317,7 +320,7 @@ function App() {
 									onLoad={(event) => handleSeasonLoad(season.id, event.currentTarget.currentSrc)}
 								/>
 							</picture>
-							{highResolutionSeasonIds.has(season.id) && (
+							{highResolutionRequestedSeasonIds.has(season.id) && !pngPreviewSeasonIds.has(season.id) && (
 								<img
 									className="season-background-high"
 									src={season.image.png}
@@ -325,6 +328,8 @@ function App() {
 									aria-hidden="true"
 									decoding="async"
 									loading="eager"
+									data-loaded={highResolutionSeasonIds.has(season.id)}
+									onLoad={() => handleHighResolutionLoad(season.id)}
 								/>
 							)}
 						</div>
