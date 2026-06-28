@@ -5,31 +5,33 @@ type SeasonBackgroundsProps = {
 	activeSeasonId: SeasonId;
 	highResolutionRequestedSeasonIds: ReadonlySet<SeasonId>;
 	highResolutionSeasonIds: ReadonlySet<SeasonId>;
-	loadedSeasonIds: ReadonlySet<SeasonId>;
+	loadedPreviewSeasonIds: ReadonlySet<SeasonId>;
 	onHighResolutionLoad: (seasonId: SeasonId) => void;
+	onSeasonError: (seasonId: SeasonId) => void;
 	onSeasonLoad: (seasonId: SeasonId, currentSrc: string) => void;
 	pngPreviewSeasonIds: ReadonlySet<SeasonId>;
-	visibleSeasonId: SeasonId;
+	requestedPreviewSeasonIds: ReadonlySet<SeasonId>;
 };
 
 export function SeasonBackgrounds({
 	activeSeasonId,
 	highResolutionRequestedSeasonIds,
 	highResolutionSeasonIds,
-	loadedSeasonIds,
+	loadedPreviewSeasonIds,
 	onHighResolutionLoad,
+	onSeasonError,
 	onSeasonLoad,
 	pngPreviewSeasonIds,
-	visibleSeasonId,
+	requestedPreviewSeasonIds,
 }: SeasonBackgroundsProps) {
 	return (
 		<div className="season-backgrounds" aria-hidden="true">
-			{seasons.map((season) => (
+			{seasons.filter((season) => requestedPreviewSeasonIds.has(season.id)).map((season) => (
 				<div
 					key={season.id}
 					className="season-background"
-					data-active={season.id === visibleSeasonId}
-					data-loaded={loadedSeasonIds.has(season.id)}
+					data-active={season.id === activeSeasonId}
+					data-loaded={loadedPreviewSeasonIds.has(season.id)}
 				>
 					<picture className="season-background-picture">
 						<source srcSet={season.image.avif} type="image/avif" />
@@ -41,11 +43,14 @@ export function SeasonBackgrounds({
 							aria-hidden="true"
 							decoding="async"
 							fetchPriority={season.id === activeSeasonId ? "high" : "low"}
-							loading="eager"
+							loading={season.id === activeSeasonId ? "eager" : "lazy"}
+							onError={() => onSeasonError(season.id)}
 							onLoad={(event) => onSeasonLoad(season.id, event.currentTarget.currentSrc)}
 						/>
 					</picture>
-					{highResolutionRequestedSeasonIds.has(season.id) && !pngPreviewSeasonIds.has(season.id) && (
+					{season.id === activeSeasonId &&
+						highResolutionRequestedSeasonIds.has(season.id) &&
+						!pngPreviewSeasonIds.has(season.id) && (
 						<img
 							className="season-background-high"
 							src={season.image.png}

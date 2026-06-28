@@ -36,6 +36,3 @@
 	opacity: 1;
 }
 
-.forest-scene[aria-busy="true"] .season-background {
-	opacity: 0;
-}

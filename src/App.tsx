@@ -1,7 +1,6 @@
 import "./App.css";
 import { HollowEyes } from "./components/HollowEyes/HollowEyes";
 import { ParticlesLayer } from "./components/ParticlesLayer/ParticlesLayer";
-import { SceneLoader } from "./components/SceneLoader/SceneLoader";
 import { SeasonBackgrounds } from "./components/SeasonBackgrounds/SeasonBackgrounds";
 import { SeasonSwitcher } from "./components/SeasonSwitcher/SeasonSwitcher";
 import { useSeasonScene } from "./hooks/useSeasonScene";
@@ -9,46 +8,54 @@ import { useSeasonScene } from "./hooks/useSeasonScene";
 function App() {
 	const {
 		activeSeasonId,
+		activeSeason,
 		eyePosition,
+		failedPreviewSeasonIds,
 		handleHighResolutionLoad,
+		handleSeasonError,
 		handleSeasonLoad,
 		handleSeasonSelect,
 		highResolutionRequestedSeasonIds,
 		highResolutionSeasonIds,
-		loadedSeasonIds,
+		isSwitchingSeason,
+		loadedPreviewSeasonIds,
+		pendingSeasonId,
 		particles,
 		pngPreviewSeasonIds,
 		previewsReady,
-		renderedSeason,
-		visibleSeasonId,
+		requestedPreviewSeasonIds,
 	} = useSeasonScene();
 
 	return (
 		<main className="scene-page">
 			<section
 				className="forest-scene"
-				aria-label={`${renderedSeason.label} forest background with seasonal particles`}
-				aria-busy={!previewsReady}
+				aria-label={`${activeSeason.label} forest background with seasonal particles`}
+				aria-busy={!previewsReady || isSwitchingSeason}
 				data-ready={previewsReady}
 			>
 				<SeasonBackgrounds
 					activeSeasonId={activeSeasonId}
 					highResolutionRequestedSeasonIds={highResolutionRequestedSeasonIds}
 					highResolutionSeasonIds={highResolutionSeasonIds}
-					loadedSeasonIds={loadedSeasonIds}
+					loadedPreviewSeasonIds={loadedPreviewSeasonIds}
 					onHighResolutionLoad={handleHighResolutionLoad}
+					onSeasonError={handleSeasonError}
 					onSeasonLoad={handleSeasonLoad}
 					pngPreviewSeasonIds={pngPreviewSeasonIds}
-					visibleSeasonId={visibleSeasonId}
+					requestedPreviewSeasonIds={requestedPreviewSeasonIds}
 				/>
-
-				{!previewsReady && <SceneLoader />}
 
 				{previewsReady && (
 					<>
-						<SeasonSwitcher activeSeasonId={activeSeasonId} onSeasonSelect={handleSeasonSelect} />
+						<SeasonSwitcher
+							activeSeasonId={activeSeasonId}
+							failedSeasonIds={failedPreviewSeasonIds}
+							pendingSeasonId={pendingSeasonId}
+							onSeasonSelect={handleSeasonSelect}
+						/>
 						<HollowEyes position={eyePosition} />
-						<ParticlesLayer particles={particles} season={renderedSeason} />
+						<ParticlesLayer particles={particles} season={activeSeason} />
 					</>
 				)}
 			</section>

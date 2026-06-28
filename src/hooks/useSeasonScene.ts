@@ -4,37 +4,57 @@ import { isPngImage, shouldLoadHighResolutionImages } from "../lib/imageLoading"
 import { makeParticles } from "../lib/particles";
 import { useEyePosition } from "./useEyePosition";
 
+const INITIAL_SEASON_ID: SeasonId = "autumn";
+
+const addSeasonId = (seasonIds: ReadonlySet<SeasonId>, seasonId: SeasonId) => {
+	if (seasonIds.has(seasonId)) {
+		return seasonIds;
+	}
+
+	const nextSeasonIds = new Set(seasonIds);
+	nextSeasonIds.add(seasonId);
+
+	return nextSeasonIds;
+};
+
+const removeSeasonId = (seasonIds: ReadonlySet<SeasonId>, seasonId: SeasonId) => {
+	if (!seasonIds.has(seasonId)) {
+		return seasonIds;
+	}
+
+	const nextSeasonIds = new Set(seasonIds);
+	nextSeasonIds.delete(seasonId);
+
+	return nextSeasonIds;
+};
+
 export const useSeasonScene = () => {
-	const [activeSeasonId, setActiveSeasonId] = useState<SeasonId>("autumn");
-	const [visibleSeasonId, setVisibleSeasonId] = useState<SeasonId>("autumn");
-	const [loadedSeasonIds, setLoadedSeasonIds] = useState<ReadonlySet<SeasonId>>(() => new Set());
+	const [activeSeasonId, setActiveSeasonId] = useState<SeasonId>(INITIAL_SEASON_ID);
+	const [pendingSeasonId, setPendingSeasonId] = useState<SeasonId | null>(null);
+	const [requestedPreviewSeasonIds, setRequestedPreviewSeasonIds] = useState<ReadonlySet<SeasonId>>(
+		() => new Set([INITIAL_SEASON_ID]),
+	);
+	const [loadedPreviewSeasonIds, setLoadedPreviewSeasonIds] = useState<ReadonlySet<SeasonId>>(() => new Set());
+	const [failedPreviewSeasonIds, setFailedPreviewSeasonIds] = useState<ReadonlySet<SeasonId>>(() => new Set());
 	const [pngPreviewSeasonIds, setPngPreviewSeasonIds] = useState<ReadonlySet<SeasonId>>(() => new Set());
 	const [highResolutionRequestedSeasonIds, setHighResolutionRequestedSeasonIds] = useState<ReadonlySet<SeasonId>>(
 		() => new Set(),
 	);
 	const [highResolutionSeasonIds, setHighResolutionSeasonIds] = useState<ReadonlySet<SeasonId>>(() => new Set());
-	const visibleSeason = seasons.find((season) => season.id === visibleSeasonId) ?? seasons[2];
-	const activeSeason = seasons.find((season) => season.id === activeSeasonId) ?? visibleSeason;
-	const renderedSeason = loadedSeasonIds.has(activeSeasonId) ? activeSeason : visibleSeason;
-	const previewsReady = loadedSeasonIds.size === seasons.length;
-	const hollowPoint = renderedSeason.hollowPoint ?? DEFAULT_HOLLOW_POINT;
+	const activeSeason = seasons.find((season) => season.id === activeSeasonId) ?? seasons[2];
+	const previewsReady = loadedPreviewSeasonIds.has(activeSeasonId);
+	const isSwitchingSeason = pendingSeasonId !== null;
+	const hollowPoint = activeSeason.hollowPoint ?? DEFAULT_HOLLOW_POINT;
 	const eyePosition = useEyePosition(hollowPoint);
-	const particles = useMemo(() => makeParticles(renderedSeason), [renderedSeason]);
+	const particles = useMemo(() => makeParticles(activeSeason), [activeSeason]);
 
 	useEffect(() => {
-		if (!previewsReady || !loadedSeasonIds.has(activeSeasonId) || !shouldLoadHighResolutionImages()) {
+		if (!previewsReady || requestedPreviewSeasonIds.size === seasons.length) {
 			return;
 		}
 
-		const nextSeason = [
-			activeSeason,
-			...seasons.filter((season) => season.id !== activeSeason.id),
-		].find(
-			(season) =>
-				loadedSeasonIds.has(season.id) &&
-				!pngPreviewSeasonIds.has(season.id) &&
-				!highResolutionRequestedSeasonIds.has(season.id) &&
-				!highResolutionSeasonIds.has(season.id),
+		const nextSeason = seasons.find(
+			(season) => !requestedPreviewSeasonIds.has(season.id) && !failedPreviewSeasonIds.has(season.id),
 		);
 
 		if (!nextSeason) {
@@ -43,17 +63,42 @@ export const useSeasonScene = () => {
 
 		let idleCallbackId: number | undefined;
 		let timeoutId: number | undefined;
+		const requestNextPreview = () => {
+			setRequestedPreviewSeasonIds((currentSeasonIds) => addSeasonId(currentSeasonIds, nextSeason.id));
+		};
+
+		if ("requestIdleCallback" in window) {
+			idleCallbackId = window.requestIdleCallback(requestNextPreview, { timeout: 3500 });
+		} else {
+			timeoutId = setTimeout(requestNextPreview, 1400);
+		}
+
+		return () => {
+			if (idleCallbackId !== undefined) {
+				window.cancelIdleCallback(idleCallbackId);
+			}
+
+			if (timeoutId !== undefined) {
+				clearTimeout(timeoutId);
+			}
+		};
+	}, [failedPreviewSeasonIds, previewsReady, requestedPreviewSeasonIds]);
+
+	useEffect(() => {
+		if (
+			!previewsReady ||
+			pngPreviewSeasonIds.has(activeSeasonId) ||
+			highResolutionRequestedSeasonIds.has(activeSeasonId) ||
+			highResolutionSeasonIds.has(activeSeasonId) ||
+			!shouldLoadHighResolutionImages()
+		) {
+			return;
+		}
+
+		let idleCallbackId: number | undefined;
+		let timeoutId: number | undefined;
 		const requestHighResolutionImage = () => {
-			setHighResolutionRequestedSeasonIds((currentSeasonIds) => {
-				if (currentSeasonIds.has(nextSeason.id)) {
-					return currentSeasonIds;
-				}
-
-				const nextSeasonIds = new Set(currentSeasonIds);
-				nextSeasonIds.add(nextSeason.id);
-
-				return nextSeasonIds;
-			});
+			setHighResolutionRequestedSeasonIds((currentSeasonIds) => addSeasonId(currentSeasonIds, activeSeasonId));
 		};
 
 		if ("requestIdleCallback" in window) {
@@ -72,89 +117,76 @@ export const useSeasonScene = () => {
 			}
 		};
 	}, [
-		activeSeason,
 		activeSeasonId,
 		highResolutionRequestedSeasonIds,
 		highResolutionSeasonIds,
-		loadedSeasonIds,
 		pngPreviewSeasonIds,
 		previewsReady,
 	]);
 
 	const handleSeasonLoad = (seasonId: SeasonId, currentSrc: string) => {
-		setLoadedSeasonIds((currentSeasonIds) => {
-			if (currentSeasonIds.has(seasonId)) {
-				return currentSeasonIds;
-			}
-
-			const nextSeasonIds = new Set(currentSeasonIds);
-			nextSeasonIds.add(seasonId);
-
-			return nextSeasonIds;
-		});
-
-		if (seasonId === activeSeasonId) {
-			setVisibleSeasonId(seasonId);
-		}
+		setLoadedPreviewSeasonIds((currentSeasonIds) => addSeasonId(currentSeasonIds, seasonId));
+		setFailedPreviewSeasonIds((currentSeasonIds) => removeSeasonId(currentSeasonIds, seasonId));
 
 		if (isPngImage(currentSrc)) {
-			setPngPreviewSeasonIds((currentSeasonIds) => {
-				if (currentSeasonIds.has(seasonId)) {
-					return currentSeasonIds;
-				}
+			setPngPreviewSeasonIds((currentSeasonIds) => addSeasonId(currentSeasonIds, seasonId));
+			setHighResolutionSeasonIds((currentSeasonIds) => addSeasonId(currentSeasonIds, seasonId));
+		}
 
-				const nextSeasonIds = new Set(currentSeasonIds);
-				nextSeasonIds.add(seasonId);
+		if (seasonId === pendingSeasonId) {
+			setActiveSeasonId(seasonId);
+			setPendingSeasonId(null);
+		}
+	};
 
-				return nextSeasonIds;
-			});
-			setHighResolutionSeasonIds((currentSeasonIds) => {
-				if (currentSeasonIds.has(seasonId)) {
-					return currentSeasonIds;
-				}
+	const handleSeasonError = (seasonId: SeasonId) => {
+		setFailedPreviewSeasonIds((currentSeasonIds) => addSeasonId(currentSeasonIds, seasonId));
+		setRequestedPreviewSeasonIds((currentSeasonIds) => removeSeasonId(currentSeasonIds, seasonId));
 
-				const nextSeasonIds = new Set(currentSeasonIds);
-				nextSeasonIds.add(seasonId);
-
-				return nextSeasonIds;
-			});
+		if (seasonId === pendingSeasonId) {
+			setPendingSeasonId(null);
 		}
 	};
 
 	const handleHighResolutionLoad = (seasonId: SeasonId) => {
-		setHighResolutionSeasonIds((currentSeasonIds) => {
-			if (currentSeasonIds.has(seasonId)) {
-				return currentSeasonIds;
-			}
-
-			const nextSeasonIds = new Set(currentSeasonIds);
-			nextSeasonIds.add(seasonId);
-
-			return nextSeasonIds;
-		});
+		setHighResolutionSeasonIds((currentSeasonIds) => addSeasonId(currentSeasonIds, seasonId));
 	};
 
 	const handleSeasonSelect = (seasonId: SeasonId) => {
-		setActiveSeasonId(seasonId);
-
-		if (loadedSeasonIds.has(seasonId)) {
-			setVisibleSeasonId(seasonId);
+		if (seasonId === activeSeasonId) {
+			setPendingSeasonId(null);
+			return;
 		}
+
+		setFailedPreviewSeasonIds((currentSeasonIds) => removeSeasonId(currentSeasonIds, seasonId));
+
+		if (loadedPreviewSeasonIds.has(seasonId)) {
+			setActiveSeasonId(seasonId);
+			setPendingSeasonId(null);
+			return;
+		}
+
+		setPendingSeasonId(seasonId);
+		setRequestedPreviewSeasonIds((currentSeasonIds) => addSeasonId(currentSeasonIds, seasonId));
 	};
 
 	return {
 		activeSeasonId,
+		activeSeason,
 		eyePosition,
 		handleHighResolutionLoad,
+		handleSeasonError,
 		handleSeasonLoad,
 		handleSeasonSelect,
+		failedPreviewSeasonIds,
 		highResolutionRequestedSeasonIds,
 		highResolutionSeasonIds,
-		loadedSeasonIds,
+		isSwitchingSeason,
+		loadedPreviewSeasonIds,
+		pendingSeasonId,
 		particles,
 		pngPreviewSeasonIds,
 		previewsReady,
-		renderedSeason,
-		visibleSeasonId,
+		requestedPreviewSeasonIds,
 	};
 };
