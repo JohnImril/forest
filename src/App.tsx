@@ -95,7 +95,16 @@ const makeParticles = (season: Season): Particle[] =>
 		variant: id % 4,
 	}));
 
+const preloadImage = (src: string) =>
+	new Promise<void>((resolve, reject) => {
+		const image = new Image();
+		image.onload = () => resolve();
+		image.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+		image.src = src;
+	});
+
 function App() {
+	const [imagesReady, setImagesReady] = useState(false);
 	const [activeSeasonId, setActiveSeasonId] = useState<SeasonId>("autumn");
 	const activeSeason = seasons.find((season) => season.id === activeSeasonId) ?? seasons[2];
 	const hollowPoint = activeSeason.hollowPoint ?? HOLLOW_POINT;
@@ -106,6 +115,28 @@ function App() {
 	const particles = useMemo(() => makeParticles(activeSeason), [activeSeason]);
 
 	useEffect(() => {
+		let isMounted = true;
+
+		Promise.all(seasons.map((season) => preloadImage(season.image)))
+			.then(() => {
+				if (isMounted) {
+					setImagesReady(true);
+				}
+			})
+			.catch((error: unknown) => {
+				console.error(error);
+			});
+
+		return () => {
+			isMounted = false;
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!imagesReady) {
+			return;
+		}
+
 		const updateEyePosition = () => {
 			const viewportWidth = window.innerWidth;
 			const viewportHeight = window.innerHeight;
@@ -125,7 +156,17 @@ function App() {
 		window.addEventListener("resize", updateEyePosition);
 
 		return () => window.removeEventListener("resize", updateEyePosition);
-	}, [hollowPoint]);
+	}, [hollowPoint, imagesReady]);
+
+	if (!imagesReady) {
+		return (
+			<main className="scene-page scene-page--loading" aria-busy="true">
+				<div className="scene-loader" role="status" aria-live="polite">
+					Loading forest
+				</div>
+			</main>
+		);
+	}
 
 	return (
 		<main className="scene-page">

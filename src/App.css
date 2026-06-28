@@ -3,6 +3,35 @@
 	background: #120c05;
 }
 
+.scene-page--loading {
+	display: grid;
+	place-items: center;
+	color: rgba(255, 244, 222, 0.86);
+}
+
+.scene-loader {
+	position: relative;
+	font:
+		700 13px/1 "Trebuchet MS",
+		"Segoe UI",
+		sans-serif;
+	letter-spacing: 0;
+	text-transform: uppercase;
+}
+
+.scene-loader::after {
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: calc(100% + 14px);
+	width: 34px;
+	height: 2px;
+	border-radius: 999px;
+	background: rgba(255, 230, 168, 0.86);
+	transform: translateX(-50%);
+	animation: loader-pulse 900ms ease-in-out infinite;
+}
+
 .forest-scene {
 	position: fixed;
 	inset: 0;
@@ -446,6 +475,18 @@
 	66% {
 		filter: brightness(0.78) blur(0.2px);
 		opacity: calc(var(--particle-opacity) * 0.42);
+	}
+}
+
+@keyframes loader-pulse {
+	0%,
+	100% {
+		opacity: 0.34;
+		transform: translateX(-50%) scaleX(0.72);
+	}
+	50% {
+		opacity: 1;
+		transform: translateX(-50%) scaleX(1);
 	}
 }
 
