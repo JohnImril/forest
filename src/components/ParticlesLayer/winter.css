@@ -1,0 +1,12 @@
+.particle--winter {
+	height: var(--particle-size);
+	border: 0;
+	border-radius: 50%;
+	background: rgba(246, 252, 255, 0.92);
+	box-shadow:
+		0 0 6px rgba(255, 255, 255, 0.68),
+		0 0 12px rgba(165, 216, 255, 0.28);
+	animation:
+		particle-snow var(--particle-duration) linear var(--particle-delay) infinite,
+		particle-shimmer calc(var(--particle-duration) * 0.8) ease-in-out var(--particle-delay) infinite;
+}

@@ -1,0 +1,60 @@
+.season-switcher {
+	position: fixed;
+	top: 18px;
+	left: 50%;
+	z-index: 10;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(72px, 1fr));
+	gap: 4px;
+	width: min(420px, calc(100vw - 28px));
+	padding: 4px;
+	border: 1px solid rgba(255, 239, 203, 0.2);
+	border-radius: 8px;
+	background: rgba(20, 14, 7, 0.42);
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+	backdrop-filter: blur(10px);
+	transform: translateX(-50%);
+}
+
+.season-button {
+	min-width: 0;
+	height: 34px;
+	padding: 0 10px;
+	border: 0;
+	border-radius: 5px;
+	color: rgba(255, 244, 222, 0.72);
+	background: transparent;
+	font:
+		700 13px/1 "Trebuchet MS",
+		"Segoe UI",
+		sans-serif;
+	cursor: pointer;
+	transition:
+		color 160ms ease,
+		background-color 160ms ease,
+		box-shadow 160ms ease;
+}
+
+.season-button:hover {
+	color: #fff4de;
+	background: rgba(255, 235, 190, 0.12);
+}
+
+.season-button[aria-pressed="true"] {
+	color: #1b1208;
+	background: rgba(255, 230, 168, 0.86);
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
+}
+
+@media (max-width: 560px) {
+	.season-switcher {
+		top: 12px;
+		grid-template-columns: repeat(2, 1fr);
+		width: min(260px, calc(100vw - 24px));
+	}
+
+	.season-button {
+		height: 32px;
+		font-size: 12px;
+	}
+}

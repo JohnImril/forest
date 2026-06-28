@@ -1,0 +1,64 @@
+.hollow-eyes {
+	position: absolute;
+	left: var(--eyes-left, 81%);
+	top: var(--eyes-top, 43%);
+	z-index: 4;
+	display: flex;
+	gap: 9px;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+
+.eye {
+	--blink-duration: 7.2s;
+
+	position: relative;
+	width: 12px;
+	height: 8px;
+	border-radius: 65% 65% 55% 55%;
+	background: radial-gradient(circle at 50% 45%, #efd07a 0 42%, #bb8740 72%, #5b3a1b 100%);
+	box-shadow:
+		0 0 5px rgba(241, 180, 86, 0.38),
+		0 0 14px rgba(88, 53, 23, 0.42);
+	animation: blink-switch var(--blink-duration) steps(1, end) infinite;
+}
+
+.pupil {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 3px;
+	height: 4px;
+	border-radius: 45%;
+	background: #171005;
+	transform: translate(-50%, -50%);
+	filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
+}
+
+@keyframes blink-switch {
+	0%,
+	100% {
+		opacity: 0.9;
+		filter: brightness(1);
+	}
+	18% {
+		opacity: 0.9;
+		filter: brightness(1);
+	}
+	19.3% {
+		opacity: 0;
+		filter: brightness(0.2);
+	}
+	20.4% {
+		opacity: 0.9;
+		filter: brightness(1);
+	}
+	47.1% {
+		opacity: 0;
+		filter: brightness(0.2);
+	}
+	48.3% {
+		opacity: 0.9;
+		filter: brightness(1);
+	}
+}
