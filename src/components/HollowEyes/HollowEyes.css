@@ -4,7 +4,7 @@
 	top: var(--eyes-top, 43%);
 	z-index: 4;
 	display: flex;
-	gap: 9px;
+	gap: var(--eye-gap, 9px);
 	transform: translate(-50%, -50%);
 	pointer-events: none;
 }
@@ -13,8 +13,8 @@
 	--blink-duration: 7.2s;
 
 	position: relative;
-	width: 12px;
-	height: 8px;
+	width: var(--eye-width, 12px);
+	height: var(--eye-height, 8px);
 	border-radius: 65% 65% 55% 55%;
 	background: radial-gradient(circle at 50% 45%, #efd07a 0 42%, #bb8740 72%, #5b3a1b 100%);
 	box-shadow:
@@ -27,8 +27,8 @@
 	position: absolute;
 	top: 50%;
 	left: 50%;
-	width: 3px;
-	height: 4px;
+	width: var(--pupil-width, 3px);
+	height: var(--pupil-height, 4px);
 	border-radius: 45%;
 	background: #171005;
 	transform: translate(-50%, -50%);
