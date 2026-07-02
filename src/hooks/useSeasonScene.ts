@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type RefObject } from "react";
 import { DEFAULT_HOLLOW_POINT, seasons, type SeasonId } from "../domain/seasons";
 import { isPngImage, shouldLoadHighResolutionImages } from "../lib/imageLoading";
 import { makeParticles } from "../lib/particles";
 import { useEyePosition } from "./useEyePosition";
 
-export const useSeasonScene = () => {
+export const useSeasonScene = (sceneRef: RefObject<HTMLElement | null>) => {
 	const [activeSeasonId, setActiveSeasonId] = useState<SeasonId>("autumn");
 	const [visibleSeasonId, setVisibleSeasonId] = useState<SeasonId>("autumn");
 	const [loadedSeasonIds, setLoadedSeasonIds] = useState<ReadonlySet<SeasonId>>(() => new Set());
@@ -18,7 +18,7 @@ export const useSeasonScene = () => {
 	const renderedSeason = loadedSeasonIds.has(activeSeasonId) ? activeSeason : visibleSeason;
 	const previewsReady = loadedSeasonIds.size === seasons.length;
 	const hollowPoint = renderedSeason.hollowPoint ?? DEFAULT_HOLLOW_POINT;
-	const eyePosition = useEyePosition(hollowPoint);
+	const eyePosition = useEyePosition(hollowPoint, sceneRef);
 	const particles = useMemo(() => makeParticles(renderedSeason), [renderedSeason]);
 
 	useEffect(() => {

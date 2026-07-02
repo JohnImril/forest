@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import "./App.css";
 import { HollowEyes } from "./components/HollowEyes/HollowEyes";
 import { ParticlesLayer } from "./components/ParticlesLayer/ParticlesLayer";
@@ -7,6 +8,7 @@ import { SeasonSwitcher } from "./components/SeasonSwitcher/SeasonSwitcher";
 import { useSeasonScene } from "./hooks/useSeasonScene";
 
 function App() {
+	const sceneRef = useRef<HTMLElement>(null);
 	const {
 		activeSeasonId,
 		eyePosition,
@@ -21,11 +23,12 @@ function App() {
 		previewsReady,
 		renderedSeason,
 		visibleSeasonId,
-	} = useSeasonScene();
+	} = useSeasonScene(sceneRef);
 
 	return (
 		<main className="scene-page">
 			<section
+				ref={sceneRef}
 				className="forest-scene"
 				aria-label={`${renderedSeason.label} forest background with seasonal particles`}
 				aria-busy={!previewsReady}
