@@ -6,9 +6,6 @@ Collected on 2026-07-08 before creating the Svelte port branch.
 
 - Node: `v24.12.0`
 - npm: `11.18.0`
-- Shell: Windows PowerShell
-- Working directory: `E:\Project\forest`
-- OS details: not collected. `Get-CimInstance Win32_OperatingSystem` returned access denied in this environment.
 
 ## Dependency Versions
 
@@ -37,16 +34,16 @@ From `package.json`:
 
 ## Command Results
 
-| Command | Result | Notes |
-| --- | --- | --- |
-| `npm ci` | Pass | Installed 226 packages, audited 227 packages, 0 vulnerabilities. |
-| `npm run lint` | Pass | `eslint .` completed with no reported issues. |
-| `npm run test` | Pass | 2 test files passed, 7 tests passed. Vitest duration: 169 ms. |
-| `npm run build` | Pass | `tsc -b && vite build` completed successfully. |
+| Command         | Result | Notes                                                            |
+| --------------- | ------ | ---------------------------------------------------------------- |
+| `npm ci`        | Pass   | Installed 226 packages, audited 227 packages, 0 vulnerabilities. |
+| `npm run lint`  | Pass   | `eslint .` completed with no reported issues.                    |
+| `npm run test`  | Pass   | 2 test files passed, 7 tests passed. Vitest duration: 169 ms.    |
+| `npm run build` | Pass   | `tsc -b && vite build` completed successfully.                   |
 
 ## Build Metrics
 
-- Timed build command: `Measure-Command { npm.cmd run build }`
+- Timed build command: `npm run build`
 - Build time: 1.967 seconds
 - Vite reported build time: 387 ms
 - Final `dist/` size: 6,131,095 bytes
@@ -73,11 +70,6 @@ Generated files:
 - `dist/winter.webp`: 136,378 bytes
 - `dist/favicon.svg`: 979 bytes
 
-Warnings:
-
-- Build emitted no warnings.
-- Lighthouse completed and wrote JSON, but reported a cleanup warning: `EPERM, Permission denied` while removing a temporary Lighthouse directory under `C:\Users\nikit\AppData\Local\Temp`.
-
 ## Lighthouse
 
 Command:
@@ -88,15 +80,14 @@ npx --yes lighthouse@latest http://127.0.0.1:4173/ --quiet --chrome-flags="--hea
 
 Served with `npm run preview -- --host 127.0.0.1 --port 4173`.
 
-| Metric | Value |
-| --- | --- |
-| Performance | 75 |
-| Accessibility | 100 |
-| Best Practices | 100 |
-| SEO | 92 |
-| FCP | 1.2 s |
-| LCP | 8.9 s |
-| CLS | 0 |
-| TBT | 0 ms |
-| Speed Index | 1.2 s |
-
+| Metric         | Value |
+| -------------- | ----- |
+| Performance    | 75    |
+| Accessibility  | 100   |
+| Best Practices | 100   |
+| SEO            | 92    |
+| FCP            | 1.2 s |
+| LCP            | 8.9 s |
+| CLS            | 0     |
+| TBT            | 0 ms  |
+| Speed Index    | 1.2 s |
