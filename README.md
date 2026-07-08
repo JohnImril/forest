@@ -31,6 +31,26 @@ If the link is not available yet, enable Pages in the repository settings and se
 - ESLint
 - GitHub Pages
 
+## Svelte Migration Comparison
+
+The current `main` branch contains the React implementation of Forest, built with React 19, TypeScript, and Vite. A Svelte implementation exists separately as a framework comparison and portfolio migration exercise.
+
+Svelte implementation branch: `svelte-port`
+
+The Svelte port preserves the same visual behavior while measuring how the framework change affects bundle output and local Lighthouse results. Metrics were collected before and after the migration:
+
+| Metric | React Baseline | Svelte Port |
+| --- | ---: | ---: |
+| JavaScript bundle | 200,911 B | 52,025 B |
+| Lighthouse Performance | 75 | 92 |
+| Static image asset size | 5,917,848 B | 5,917,848 B |
+
+Detailed reports:
+
+- [React baseline metrics](docs/metrics/react-baseline.md)
+- [Svelte port metrics](docs/metrics/svelte-port.md)
+- [React to Svelte comparison](docs/metrics/comparison.md)
+
 ## Project Structure
 
 ```text
