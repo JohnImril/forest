@@ -6,9 +6,6 @@ Collected on 2026-07-08 on branch `svelte-port`.
 
 - Node: `v24.12.0`
 - npm: `11.18.0`
-- Shell: Windows PowerShell
-- Working directory: `E:\Project\forest`
-- OS details: not collected. `Get-CimInstance Win32_OperatingSystem` returned access denied in this environment.
 
 ## Dependency Versions
 
@@ -31,17 +28,17 @@ From `package.json`:
 
 ## Command Results
 
-| Command | Result | Notes |
-| --- | --- | --- |
-| `npm ci` | Pass | Installed 172 packages, audited 173 packages, 0 vulnerabilities. |
-| `npm run lint` | Pass | `eslint . && svelte-check --tsconfig ./tsconfig.app.json`; 0 Svelte diagnostics. |
-| `npm run test` | Pass | 3 test files passed, 10 tests passed. Vitest duration: 159 ms. |
-| `npm run build` | Pass | `svelte-check`, `tsc -b tsconfig.node.json`, and `vite build` completed successfully. |
+| Command           | Result | Notes                                                                                       |
+| ----------------- | ------ | ------------------------------------------------------------------------------------------- |
+| `npm ci`          | Pass   | Installed 172 packages, audited 173 packages, 0 vulnerabilities.                            |
+| `npm run lint`    | Pass   | `eslint . && svelte-check --tsconfig ./tsconfig.app.json`; 0 Svelte diagnostics.            |
+| `npm run test`    | Pass   | 3 test files passed, 10 tests passed. Vitest duration: 159 ms.                              |
+| `npm run build`   | Pass   | `svelte-check`, `tsc -b tsconfig.node.json`, and `vite build` completed successfully.       |
 | `npm run preview` | Usable | Verified with Vite preview at `http://127.0.0.1:4173/` and a headless Edge DOM smoke check. |
 
 ## Build Metrics
 
-- Timed build command: `Measure-Command { npm.cmd run build }`
+- Timed build command: `npm run build`
 - Build time: 2.496 seconds
 - Vite reported build time: 141 ms
 - Final `dist/` size: 5,982,408 bytes
@@ -68,11 +65,6 @@ Generated files:
 - `dist/winter.webp`: 136,378 bytes
 - `dist/favicon.svg`: 979 bytes
 
-Warnings:
-
-- Build emitted no warnings.
-- Lighthouse completed and wrote JSON, but reported the same cleanup warning as the React baseline: `EPERM, Permission denied` while removing a temporary Lighthouse directory under `C:\Users\nikit\AppData\Local\Temp`.
-
 ## Lighthouse
 
 Command:
@@ -83,19 +75,18 @@ npx --yes lighthouse@latest http://127.0.0.1:4173/ --quiet --chrome-flags="--hea
 
 Served with `npm run preview -- --host 127.0.0.1 --port 4173`.
 
-| Metric | Value |
-| --- | --- |
-| Performance | 92 |
-| Accessibility | 100 |
-| Best Practices | 100 |
-| SEO | 92 |
-| FCP | 1.1 s |
-| LCP | 3.4 s |
-| CLS | 0 |
-| TBT | 0 ms |
-| Speed Index | 1.1 s |
+| Metric         | Value |
+| -------------- | ----- |
+| Performance    | 92    |
+| Accessibility  | 100   |
+| Best Practices | 100   |
+| SEO            | 92    |
+| FCP            | 1.1 s |
+| LCP            | 3.4 s |
+| CLS            | 0     |
+| TBT            | 0 ms  |
+| Speed Index    | 1.1 s |
 
 ## Runtime Smoke Check
 
 A headless Edge `--dump-dom` run against the Vite preview confirmed that the built Svelte app mounted the full scene: background layers, season switcher, hollow eyes, and particle spans were present in `#root`.
-
