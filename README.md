@@ -39,11 +39,11 @@ Svelte implementation branch: `svelte-port`
 
 The Svelte port preserves the same visual behavior while measuring how the framework change affects bundle output and local Lighthouse results. Metrics were collected before and after the migration:
 
-| Metric | React Baseline | Svelte Port |
-| --- | ---: | ---: |
-| JavaScript bundle | 200,911 B | 52,025 B |
-| Lighthouse Performance | 75 | 92 |
-| Static image asset size | 5,917,848 B | 5,917,848 B |
+| Metric                  | React Baseline | Svelte Port |
+| ----------------------- | -------------: | ----------: |
+| JavaScript bundle       |      200,911 B |    52,025 B |
+| Lighthouse Performance  |             75 |          92 |
+| Static image asset size |    5,917,848 B | 5,917,848 B |
 
 Detailed reports:
 
