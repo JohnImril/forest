@@ -1,5 +1,6 @@
 {
 	"name": "forest",
+	"description": "A measured React-to-Svelte migration of an interactive seasonal forest SPA.",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
