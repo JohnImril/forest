@@ -1,6 +1,8 @@
 # Forest
 
-Forest is a small portfolio SPA with an interactive full-screen forest scene. It lets the user switch between spring, summer, autumn, and winter while keeping the scene lightweight through responsive image formats and CSS-driven particle animations.
+Forest is a measured React-to-Svelte migration of a small, image-heavy SPA. The same interactive seasonal scene was implemented in both frameworks, then compared using production bundle output, build timings, dependency counts, and Lighthouse.
+
+The migration reduced the JavaScript bundle from **200,911 B to 52,025 B (-74%)** and improved Lighthouse Performance from **75 to 92** in the recorded local run. It did not make every metric better: the full quality-gated build became 0.529 s slower, CSS grew by 199 B, and the unchanged 5.9 MB image payload still dominates the app.
 
 ## Live Demo
 
@@ -12,7 +14,32 @@ If the link is not available yet, enable Pages in the repository settings and se
 
 ![Forest app screenshot](docs/screenshot.png)
 
-## Features
+## Measured Result
+
+Metrics were collected on 2026-07-08 from production builds served through the same local Vite preview setup.
+
+| Metric                   | React Baseline | Svelte Port |    Change |
+| ------------------------ | -------------: | ----------: | --------: |
+| JavaScript bundle        |      200,911 B |    52,025 B |      -74% |
+| JavaScript gzip          |       63.70 kB |    19.45 kB | -44.25 kB |
+| Lighthouse Performance   |             75 |          92 |       +17 |
+| Largest Contentful Paint |          8.9 s |       3.4 s |    -5.5 s |
+| Vite build phase         |         387 ms |      141 ms |   -246 ms |
+| Full build command       |        1.967 s |     2.496 s |  +0.529 s |
+| Installed packages       |            226 |         172 |       -54 |
+| Static image assets      |    5,917,848 B | 5,917,848 B |       0 B |
+
+These results describe this app and this measurement environment, not a universal framework benchmark. Lighthouse is run-sensitive, and Forest's payload is dominated by seasonal imagery rather than framework code.
+
+Detailed reports:
+
+- [React baseline metrics](docs/metrics/react-baseline.md)
+- [Svelte port metrics](docs/metrics/svelte-port.md)
+- [React-to-Svelte comparison](docs/metrics/comparison.md)
+
+## What Was Migrated
+
+The React baseline remains on `main`; the equivalent Svelte implementation is on `svelte-port`. Both versions provide:
 
 - Full-screen seasonal forest scene.
 - Four seasons: spring, summer, autumn, and winter.
@@ -22,34 +49,17 @@ If the link is not available yet, enable Pages in the repository settings and se
 - Animated hollow eyes positioned against the cover-scaled background.
 - GitHub Pages-ready Vite base path.
 
-## Stack
+## Implementations
 
-- React 19
-- TypeScript 6
-- Vite 8
-- Vitest
-- ESLint
-- GitHub Pages
+- **React baseline (`main`):** React 19, TypeScript 6, Vite 8.
+- **Svelte port (`svelte-port`):** Svelte, TypeScript, Vite.
+- **Shared tooling:** Vitest, ESLint, Lighthouse, GitHub Pages.
 
-## Svelte Migration Comparison
+## Migration Notes
 
-The current `main` branch contains the React implementation of Forest, built with React 19, TypeScript, and Vite. A Svelte implementation exists separately as a framework comparison and portfolio migration exercise.
+The port preserves the UI and asset set so the comparison focuses on framework and implementation overhead. React's `useSeasonScene` orchestration became a Svelte store, while eye positioning moved closer to the bound scene element in `App.svelte`.
 
-Svelte implementation branch: `svelte-port`
-
-The Svelte port preserves the same visual behavior while measuring how the framework change affects bundle output and local Lighthouse results. Metrics were collected before and after the migration:
-
-| Metric                  | React Baseline | Svelte Port |
-| ----------------------- | -------------: | ----------: |
-| JavaScript bundle       |      200,911 B |    52,025 B |
-| Lighthouse Performance  |             75 |          92 |
-| Static image asset size |    5,917,848 B | 5,917,848 B |
-
-Detailed reports:
-
-- [React baseline metrics](docs/metrics/react-baseline.md)
-- [Svelte port metrics](docs/metrics/svelte-port.md)
-- [React to Svelte comparison](docs/metrics/comparison.md)
+For this declarative, mostly local-state interface, Svelte removed much of the client runtime cost. The trade-off was additional Svelte compiler/type-checking work in the full build and framework-specific store initialization behavior.
 
 ## Project Structure
 
