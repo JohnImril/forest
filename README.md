@@ -149,10 +149,6 @@ The workflow:
 
 In the repository settings, set Pages source to **GitHub Actions**. For the `JohnImril/forest` repository, CI builds Vite with `base: "/forest/"`, while local builds keep `base: "/"`.
 
-## Possible Improvements / Roadmap
-
-- Add visual regression checks for the seasonal scenes.
-- Add lightweight hook tests for `useSeasonScene` if the loading flow grows.
 - Add accessibility smoke checks for keyboard navigation and reduced-motion preferences.
 - Consider CSS Modules if the component set grows and global class names become harder to manage.
 - Add a small CI badge after the GitHub Actions workflow is enabled in the public repository.
